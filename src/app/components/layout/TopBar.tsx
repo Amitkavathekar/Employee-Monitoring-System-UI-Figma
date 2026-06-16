@@ -27,6 +27,9 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
   const pageTitles: Record<string, string> = {
     dashboard: "Dashboard",
     employees: "Employee Management",
+    policies: "Monitoring Policies",
+    applications: "Application Monitoring",
+    websites: "Website Monitoring",
     live: "Live Monitoring",
     attendance: "Attendance Management",
     productivity: "Productivity Analytics",

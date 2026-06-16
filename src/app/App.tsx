@@ -25,10 +25,12 @@ import {
   NotificationsCenter,
   ManagerSettings,
 } from "./components/manager/ManagerPages";
+import { ManagerApplications, ManagerWebsites } from "./components/manager/ManagerMonitoring";
 import { AdminDashboard } from "./components/admin/AdminDashboard";
 import { AdminRoleManagement } from "./components/admin/AdminRoleManagement";
 import { AdminReports } from "./components/admin/AdminReports";
 import { AdminAnalytics } from "./components/admin/AdminAnalytics";
+import { AdminPolicies } from "./components/admin/AdminPolicies";
 
 {/* MARKER-MAKE-KIT-INVOKED */}
 
@@ -50,6 +52,8 @@ const managerPages: Record<string, React.ComponentType> = {
   productivity: ProductivityMonitoring,
   screenshots: ScreenshotMonitoring,
   recordings: RecordingMonitoring,
+  applications: ManagerApplications,
+  websites: ManagerWebsites,
   reports: Reports,
   settings: ManagerSettings,
 };
@@ -57,6 +61,7 @@ const managerPages: Record<string, React.ComponentType> = {
 const adminPages: Record<string, React.ComponentType> = {
   dashboard: AdminDashboard,
   employees: AdminRoleManagement,
+  policies: AdminPolicies,
   reports: AdminReports,
   analytics: AdminAnalytics,
   settings: ManagerSettings,

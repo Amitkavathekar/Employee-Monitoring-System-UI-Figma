@@ -2,7 +2,8 @@ import { useState } from "react";
 import {
   LayoutDashboard, Users, Clock, BarChart3, Camera, Video,
   Activity, Bell, Settings, LogOut, User, FileText,
-  Radio, ChevronLeft, ChevronRight, Monitor, TrendingUp
+  Radio, ChevronLeft, ChevronRight, Monitor, TrendingUp, Shield,
+  Globe, Laptop
 } from "lucide-react";
 
 type Role = "admin" | "manager" | "employee";
@@ -22,6 +23,8 @@ const managerNav = [
   { id: "productivity", label: "Productivity", icon: TrendingUp },
   { id: "screenshots", label: "Screenshots", icon: Camera },
   { id: "recordings", label: "Recordings", icon: Video },
+  { id: "applications", label: "Application Monitoring", icon: Laptop },
+  { id: "websites", label: "Website Monitoring", icon: Globe },
   { id: "reports", label: "Reports", icon: FileText },
   { id: "settings", label: "Settings", icon: Settings },
 ];
@@ -37,6 +40,7 @@ const employeeNav = [
 const adminNav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "employees", label: "Role Management", icon: Users },
+  { id: "policies", label: "Monitoring Policies", icon: Shield },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
   { id: "reports", label: "Reports", icon: FileText },
   { id: "settings", label: "Settings", icon: Settings },
