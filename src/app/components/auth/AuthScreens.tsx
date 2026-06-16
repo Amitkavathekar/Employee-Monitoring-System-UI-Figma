@@ -28,7 +28,7 @@ function SplashScreen({ onNext }: { onNext: () => void }) {
             <Monitor className="w-12 h-12 text-white" />
           </div>
         </div>
-        <h1 className="mb-3 flex justify-center gap-2" style={{ fontSize: "2.1rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+        <h1 className="mb-3 flex justify-center gap-2 text-2xl sm:text-3xl md:text-4xl font-bold whitespace-nowrap">
           <span style={{ color: "var(--primary)" }}>Employee</span>
           <span style={{ color: "var(--foreground)" }}>Monitoring</span>
           <span style={{ color: "var(--accent)" }}>System</span>
@@ -116,7 +116,7 @@ function LoginScreen({ onLogin, onForgot, onRegister }: { onLogin: (role: "admin
               <Monitor className="w-10 h-10 text-white" />
             </div>
           </div>
-          <h2 className="mb-4" style={{ color: "#e8eaf6", fontSize: "1.8rem", fontWeight: 700 }}>
+          <h2 className="mb-4 text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: "#e8eaf6" }}>
             Employee Monitoring System
           </h2>
           <p style={{ color: "#8b8fa8", lineHeight: 1.7 }}>
@@ -555,7 +555,7 @@ function RegisterScreen({ onBack, onSuccess }: { onBack: () => void; onSuccess: 
               <Monitor className="w-10 h-10 text-white" />
             </div>
           </div>
-          <h2 className="mb-4" style={{ color: "#e8eaf6", fontSize: "1.8rem", fontWeight: 700 }}>
+          <h2 className="mb-4 text-xl sm:text-2xl md:text-3xl font-bold" style={{ color: "#e8eaf6" }}>
             Employee Monitoring System
           </h2>
           <p style={{ color: "#8b8fa8", lineHeight: 1.7 }}>

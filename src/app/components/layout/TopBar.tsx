@@ -7,6 +7,7 @@ interface TopBarProps {
   onToggleDark: () => void;
   pageTitle: string;
   onLogout: () => void;
+  onToggleMobileMenu?: () => void;
 }
 
 const notifications = [
@@ -17,7 +18,7 @@ const notifications = [
   { id: 5, type: "alert", text: "Sarah Johnson marked as late", time: "2h ago", read: true },
 ];
 
-export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout }: TopBarProps) {
+export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onToggleMobileMenu }: TopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchVal, setSearchVal] = useState("");
@@ -44,6 +45,13 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout }: TopB
       style={{ background: "var(--card)", borderBottom: "1px solid var(--border)" }}>
       {/* Left */}
       <div className="flex items-center gap-4">
+        <button
+          onClick={onToggleMobileMenu}
+          className="w-9 h-9 rounded-xl flex items-center justify-center transition-all hover:scale-110 md:hidden"
+          style={{ background: "var(--muted)", color: "var(--foreground)" }}
+        >
+          <Menu className="w-5 h-5" />
+        </button>
         <div>
           <h2 style={{ fontWeight: 700, lineHeight: 1, fontSize: "1.1rem" }}>{pageTitles[pageTitle] || pageTitle}</h2>
           <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "2px" }}>

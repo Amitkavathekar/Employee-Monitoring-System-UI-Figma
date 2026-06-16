@@ -67,6 +67,7 @@ export default function App() {
   const [role, setRole] = useState<Role>("admin");
   const [activePage, setActivePage] = useState("dashboard");
   const [isDark, setIsDark] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
@@ -76,11 +77,13 @@ export default function App() {
     setRole(loginRole);
     setActivePage("dashboard");
     setAppState("app");
+    setMobileMenuOpen(false);
   };
 
   const handleLogout = () => {
     setActivePage("dashboard");
     setAppState("auth");
+    setMobileMenuOpen(false);
   };
 
   const handleNavigate = (page: string) => {
@@ -100,8 +103,8 @@ export default function App() {
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
-      {/* Sidebar */}
-      <div className="flex-shrink-0 h-full">
+      {/* Sidebar (Desktop) */}
+      <div className="hidden md:block flex-shrink-0 h-full">
         <Sidebar
           role={role}
           activePage={activePage}
@@ -111,6 +114,21 @@ export default function App() {
         />
       </div>
 
+      {/* Sidebar (Mobile Overlay Drawer) */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 flex md:hidden" style={{ background: "rgba(0,0,0,0.5)" }} onClick={() => setMobileMenuOpen(false)}>
+          <div className="h-full w-[240px]" onClick={e => e.stopPropagation()}>
+            <Sidebar
+              role={role}
+              activePage={activePage}
+              onNavigate={(page) => { handleNavigate(page); setMobileMenuOpen(false); }}
+              onLogout={() => { handleLogout(); setMobileMenuOpen(false); }}
+              isDark={isDark}
+            />
+          </div>
+        </div>
+      )}
+
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         <TopBar
@@ -119,6 +137,7 @@ export default function App() {
           onToggleDark={() => setIsDark(!isDark)}
           pageTitle={activePage}
           onLogout={handleLogout}
+          onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
         />
         <main className="flex-1 overflow-hidden" style={{ background: "var(--background)" }}>
           <PageComponent activePage={activePage} />
