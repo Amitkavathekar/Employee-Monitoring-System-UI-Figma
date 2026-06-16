@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Play, Square, Clock, Activity, Camera, Download, Trash2,
   Video, Eye, ZoomIn, Keyboard, Mouse, Globe, AppWindow,
@@ -188,25 +188,11 @@ export function EmployeeProductivity() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Productivity Trend */}
-        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Productivity Trend</h3>
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={monthlyTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[70, 100]} />
-              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-              <Line type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={2.5} dot={{ r: 4, fill: "var(--primary)" }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Weekly Tasks */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Weekly Tasks Completion Bar Chart */}
         <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Weekly Task Completion</h3>
-          <ResponsiveContainer width="100%" height={200}>
+          <ResponsiveContainer width="100%" height={230}>
             <BarChart data={prodData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="week" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
@@ -216,29 +202,60 @@ export function EmployeeProductivity() {
             </BarChart>
           </ResponsiveContainer>
         </div>
-      </div>
 
-      {/* Progress Metrics */}
-      <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-        <h3 style={{ fontWeight: 600, marginBottom: "1.5rem" }}>Performance Breakdown</h3>
-        <div className="space-y-4">
-          {[
-            { label: "Attendance Consistency", value: 95, color: "#10b981" },
-            { label: "Working Hours Compliance", value: 88, color: "#6366f1" },
-            { label: "Task Completion Rate", value: 87, color: "#06b6d4" },
-            { label: "Activity Score", value: 91, color: "#f59e0b" },
-            { label: "Overall Productivity", value: 92, color: "#8b5cf6" },
-          ].map(({ label, value, color }) => (
-            <div key={label}>
-              <div className="flex justify-between mb-2">
-                <span style={{ fontSize: "0.875rem" }}>{label}</span>
-                <span style={{ fontSize: "0.875rem", fontWeight: 700, color }}>{value}%</span>
-              </div>
-              <div className="h-2.5 rounded-full" style={{ background: "var(--muted)" }}>
-                <div className="h-2.5 rounded-full transition-all" style={{ width: `${value}%`, background: color }} />
-              </div>
-            </div>
-          ))}
+        {/* Manager Assigned Tasks */}
+        <div className="lg:col-span-2 rounded-2xl p-5 overflow-hidden flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Manager Assigned Tasks</h3>
+          <div className="overflow-x-auto flex-1">
+            <table className="w-full text-left">
+              <thead>
+                <tr style={{ background: "var(--muted)" }}>
+                  {["Task Name", "Priority", "Deadline", "Progress", "Status"].map(h => (
+                    <th key={h} className="px-4 py-2 text-left" style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", fontWeight: 600, textTransform: "uppercase" }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { id: 1, name: "Integrate Redux for Leave state", priority: "High", deadline: "June 20, 2026", progress: 65, status: "In Progress" },
+                  { id: 2, name: "Implement Auth Register Screens", priority: "High", deadline: "June 22, 2026", progress: 100, status: "Completed" },
+                  { id: 3, name: "Optimize Database Queries", priority: "Medium", deadline: "June 25, 2026", progress: 0, status: "Pending" },
+                  { id: 4, name: "Write API Documentation", priority: "Low", deadline: "June 30, 2026", progress: 0, status: "Pending" },
+                ].map((task) => (
+                  <tr key={task.id} style={{ borderBottom: "1px solid var(--border)" }}>
+                    <td className="px-4 py-3" style={{ fontSize: "0.85rem", fontWeight: 600 }}>{task.name}</td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded text-[0.7rem] font-bold"
+                        style={{
+                          background: task.priority === "High" ? "rgba(239,68,68,0.15)" : task.priority === "Medium" ? "rgba(245,158,11,0.15)" : "rgba(6,182,212,0.15)",
+                          color: task.priority === "High" ? "#ef4444" : task.priority === "Medium" ? "#f59e0b" : "#06b6d4"
+                        }}>
+                        {task.priority}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{task.deadline}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="h-1.5 w-16 rounded-full" style={{ background: "var(--muted)" }}>
+                          <div className="h-1.5 rounded-full transition-all" style={{ width: `${task.progress}%`, background: "var(--primary)" }} />
+                        </div>
+                        <span style={{ fontSize: "0.75rem" }}>{task.progress}%</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="px-2 py-0.5 rounded text-[0.7rem] font-bold"
+                        style={{
+                          background: task.status === "Completed" ? "rgba(16,185,129,0.15)" : task.status === "In Progress" ? "rgba(99,102,241,0.15)" : "rgba(107,114,128,0.15)",
+                          color: task.status === "Completed" ? "#10b981" : task.status === "In Progress" ? "var(--primary)" : "#6b7280"
+                        }}>
+                        {task.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
@@ -670,9 +687,19 @@ export function EmployeeNotifications() {
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
-export function EmployeeProfile() {
+export function EmployeeProfile({ activePage }: { activePage?: string }) {
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "password" | "settings">("info");
+  const [activeTab, setActiveTab] = useState<"info" | "password" | "settings">(
+    activePage === "settings" ? "settings" : "info"
+  );
+
+  useEffect(() => {
+    if (activePage === "settings") {
+      setActiveTab("settings");
+    } else if (activePage === "profile") {
+      setActiveTab("info");
+    }
+  }, [activePage]);
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">

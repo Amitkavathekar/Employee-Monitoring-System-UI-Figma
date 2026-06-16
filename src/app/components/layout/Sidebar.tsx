@@ -5,11 +5,10 @@ import {
   Radio, ChevronLeft, ChevronRight, Monitor, TrendingUp
 } from "lucide-react";
 
-type ManagerPage = "dashboard" | "employees" | "live" | "attendance" | "productivity" | "screenshots" | "recordings" | "reports" | "notifications" | "settings";
-type EmployeePage = "dashboard" | "attendance" | "session" | "productivity" | "screenshots" | "recordings" | "activity" | "notifications" | "profile";
+type Role = "admin" | "manager" | "employee";
 
 interface SidebarProps {
-  role: "manager" | "employee";
+  role: Role;
   activePage: string;
   onNavigate: (page: string) => void;
   onLogout: () => void;
@@ -19,31 +18,33 @@ interface SidebarProps {
 const managerNav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "employees", label: "Employees", icon: Users },
-  { id: "live", label: "Live Monitor", icon: Radio, badge: "LIVE" },
   { id: "attendance", label: "Attendance", icon: Clock },
   { id: "productivity", label: "Productivity", icon: TrendingUp },
   { id: "screenshots", label: "Screenshots", icon: Camera },
   { id: "recordings", label: "Recordings", icon: Video },
   { id: "reports", label: "Reports", icon: FileText },
-  { id: "notifications", label: "Notifications", icon: Bell, count: 5 },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 
 const employeeNav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "attendance", label: "Attendance", icon: Clock },
-  { id: "session", label: "Work Session", icon: Monitor },
   { id: "productivity", label: "Productivity", icon: BarChart3 },
-  { id: "screenshots", label: "Screenshots", icon: Camera },
-  { id: "recordings", label: "Recordings", icon: Video },
-  { id: "activity", label: "Activity", icon: Activity },
-  { id: "notifications", label: "Notifications", icon: Bell, count: 3 },
   { id: "profile", label: "Profile", icon: User },
+  { id: "settings", label: "Settings", icon: Settings },
+];
+
+const adminNav = [
+  { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "employees", label: "Role Management", icon: Users },
+  { id: "analytics", label: "Analytics", icon: BarChart3 },
+  { id: "reports", label: "Reports", icon: FileText },
+  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 export function Sidebar({ role, activePage, onNavigate, onLogout, isDark }: SidebarProps) {
   const [collapsed, setCollapsed] = useState(false);
-  const navItems = role === "manager" ? managerNav : employeeNav;
+  const navItems = role === "admin" ? adminNav : role === "manager" ? managerNav : employeeNav;
 
   return (
     <aside
@@ -62,9 +63,9 @@ export function Sidebar({ role, activePage, onNavigate, onLogout, isDark }: Side
         </div>
         {!collapsed && (
           <div className="overflow-hidden">
-            <div style={{ fontWeight: 700, fontSize: "1rem", color: "var(--sidebar-foreground)", whiteSpace: "nowrap" }}>WorkTrackPro</div>
+            <div style={{ fontWeight: 700, fontSize: "0.85rem", color: "var(--sidebar-foreground)", lineHeight: 1.2 }}>Employee Monitoring System</div>
             <div style={{ fontSize: "0.7rem", color: "var(--sidebar-primary)", fontWeight: 600, whiteSpace: "nowrap", textTransform: "uppercase", letterSpacing: "0.05em" }}>
-              {role === "manager" ? "Manager" : "Employee"} Portal
+              {role === "admin" ? "Admin" : role === "manager" ? "Manager" : "Employee"} Portal
             </div>
           </div>
         )}
@@ -89,13 +90,13 @@ export function Sidebar({ role, activePage, onNavigate, onLogout, isDark }: Side
           style={{ background: "var(--sidebar-accent)" }}>
           <div className="w-8 h-8 rounded-full gradient-primary flex items-center justify-center flex-shrink-0">
             <span className="text-white" style={{ fontSize: "0.8rem", fontWeight: 700 }}>
-              {role === "manager" ? "AM" : "JD"}
+              {role === "admin" ? "SA" : role === "manager" ? "AM" : "JD"}
             </span>
           </div>
           {!collapsed && (
             <div className="overflow-hidden">
               <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--sidebar-foreground)", whiteSpace: "nowrap" }}>
-                {role === "manager" ? "Alex Morgan" : "John Doe"}
+                {role === "admin" ? "Super Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}
               </div>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: "#10b981" }} />

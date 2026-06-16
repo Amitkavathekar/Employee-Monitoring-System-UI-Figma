@@ -1,13 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Eye, EyeOff, Mail, Lock, User, ArrowRight, RefreshCw,
-  CheckCircle, AlertCircle, Monitor, Shield, Zap, ChevronLeft
+  CheckCircle, AlertCircle, Monitor, Shield, Zap, ChevronLeft, Phone
 } from "lucide-react";
 
-type AuthView = "splash" | "login" | "forgot" | "reset" | "success" | "session-expired";
+type AuthView = "splash" | "login" | "register" | "forgot" | "reset" | "success" | "session-expired";
 
 interface AuthScreensProps {
-  onLogin: (role: "manager" | "employee") => void;
+  onLogin: (role: "admin" | "manager" | "employee") => void;
 }
 
 function SplashScreen({ onNext }: { onNext: () => void }) {
@@ -28,10 +28,10 @@ function SplashScreen({ onNext }: { onNext: () => void }) {
             <Monitor className="w-12 h-12 text-white" />
           </div>
         </div>
-        <h1 className="mb-3" style={{ fontSize: "2.5rem", fontWeight: 700 }}>
-          <span style={{ color: "var(--primary)" }}>Work</span>
-          <span style={{ color: "var(--foreground)" }}>Track</span>
-          <span style={{ color: "var(--accent)" }}>Pro</span>
+        <h1 className="mb-3 flex justify-center gap-2" style={{ fontSize: "2.1rem", fontWeight: 700, whiteSpace: "nowrap" }}>
+          <span style={{ color: "var(--primary)" }}>Employee</span>
+          <span style={{ color: "var(--foreground)" }}>Monitoring</span>
+          <span style={{ color: "var(--accent)" }}>System</span>
         </h1>
         <p className="mb-10" style={{ color: "var(--muted-foreground)", fontSize: "1.1rem" }}>
           Enterprise Employee Monitoring & Productivity Suite
@@ -61,21 +61,31 @@ function SplashScreen({ onNext }: { onNext: () => void }) {
           Get Started <ArrowRight className="w-5 h-5" />
         </button>
         <p className="mt-4" style={{ color: "var(--muted-foreground)", fontSize: "0.8rem" }}>
-          v2.4.1 · WorkTrackPro Enterprise
+          v2.4.1 · Employee Monitoring System Enterprise
         </p>
       </div>
     </div>
   );
 }
 
-function LoginScreen({ onLogin, onForgot }: { onLogin: (role: "manager" | "employee") => void; onForgot: () => void }) {
+function LoginScreen({ onLogin, onForgot, onRegister }: { onLogin: (role: "admin" | "manager" | "employee") => void; onForgot: () => void; onRegister: () => void }) {
   const [email, setEmail] = useState("admin@company.com");
   const [password, setPassword] = useState("••••••••");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
-  const [role, setRole] = useState<"manager" | "employee">("manager");
+  const [role, setRole] = useState<"admin" | "manager" | "employee">("admin");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (role === "admin") {
+      setEmail("admin@company.com");
+    } else if (role === "manager") {
+      setEmail("manager@company.com");
+    } else {
+      setEmail("john@company.com");
+    }
+  }, [role]);
 
   const handleLogin = () => {
     if (!email || !password) { setError("Please fill in all fields"); return; }
@@ -106,8 +116,8 @@ function LoginScreen({ onLogin, onForgot }: { onLogin: (role: "manager" | "emplo
               <Monitor className="w-10 h-10 text-white" />
             </div>
           </div>
-          <h2 className="mb-4" style={{ color: "#e8eaf6", fontSize: "2rem", fontWeight: 700 }}>
-            WorkTrackPro
+          <h2 className="mb-4" style={{ color: "#e8eaf6", fontSize: "1.8rem", fontWeight: 700 }}>
+            Employee Monitoring System
           </h2>
           <p style={{ color: "#8b8fa8", lineHeight: 1.7 }}>
             Monitor productivity, track attendance, and manage your team with enterprise-grade tools.
@@ -136,7 +146,7 @@ function LoginScreen({ onLogin, onForgot }: { onLogin: (role: "manager" | "emplo
             <div className="w-16 h-16 rounded-2xl gradient-primary flex items-center justify-center mx-auto mb-3 glow-primary">
               <Monitor className="w-8 h-8 text-white" />
             </div>
-            <h1 style={{ fontWeight: 700 }}>WorkTrackPro</h1>
+            <h1 style={{ fontWeight: 700, fontSize: "1.5rem" }}>Employee Monitoring System</h1>
           </div>
 
           <h2 className="mb-1" style={{ fontWeight: 700 }}>Welcome back</h2>
@@ -144,7 +154,7 @@ function LoginScreen({ onLogin, onForgot }: { onLogin: (role: "manager" | "emplo
 
           {/* Role Toggle */}
           <div className="flex rounded-xl p-1 mb-6" style={{ background: "var(--muted)" }}>
-            {(["manager", "employee"] as const).map((r) => (
+            {(["admin", "manager", "employee"] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setRole(r)}
@@ -153,10 +163,10 @@ function LoginScreen({ onLogin, onForgot }: { onLogin: (role: "manager" | "emplo
                   background: role === r ? "var(--primary)" : "transparent",
                   color: role === r ? "white" : "var(--muted-foreground)",
                   fontWeight: role === r ? 600 : 400,
-                  fontSize: "0.9rem",
+                  fontSize: "0.85rem",
                 }}
               >
-                {r === "manager" ? "Manager" : "Employee"}
+                {r}
               </button>
             ))}
           </div>
@@ -253,13 +263,11 @@ function LoginScreen({ onLogin, onForgot }: { onLogin: (role: "manager" | "emplo
             </button>
           </div>
 
-          <div className="mt-6 p-4 rounded-xl" style={{ background: "var(--muted)", border: "1px solid var(--border)" }}>
-            <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", marginBottom: "0.5rem", fontWeight: 600 }}>Demo Credentials:</p>
-            <div className="grid grid-cols-2 gap-2" style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
-              <div><strong>Manager:</strong> admin@company.com</div>
-              <div><strong>Employee:</strong> john@company.com</div>
-              <div colSpan={2} style={{ gridColumn: "1 / -1" }}><strong>Password:</strong> any value works</div>
-            </div>
+          <div className="mt-6 text-center" style={{ fontSize: "0.875rem" }}>
+            <span style={{ color: "var(--muted-foreground)" }}>Don't have an account? </span>
+            <button onClick={onRegister} style={{ color: "var(--primary)", fontWeight: 600 }} className="hover:underline">
+              Sign Up
+            </button>
           </div>
         </div>
       </div>
@@ -500,11 +508,183 @@ function SessionExpiredScreen({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+function RegisterScreen({ onBack, onSuccess }: { onBack: () => void; onSuccess: () => void }) {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("");
+  const [terms, setTerms] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleRegister = () => {
+    if (!name || !email || !password || !confirm) {
+      setError("Please fill in all fields");
+      return;
+    }
+    if (password !== confirm) {
+      setError("Passwords do not match");
+      return;
+    }
+    if (!terms) {
+      setError("Please accept the Terms & Conditions");
+      return;
+    }
+    setError("");
+    setLoading(true);
+    setTimeout(() => {
+      setLoading(false);
+      onSuccess();
+    }, 1200);
+  };
+
+  return (
+    <div className="min-h-screen flex bg-background">
+      {/* Left Panel */}
+      <div className="hidden lg:flex flex-1 items-center justify-center relative overflow-hidden"
+        style={{ background: "linear-gradient(135deg, #0b1020 0%, #141830 50%, #0d1625 100%)" }}>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-20 w-64 h-64 rounded-full opacity-10"
+            style={{ background: "radial-gradient(circle, #6366f1 0%, transparent 70%)" }} />
+          <div className="absolute bottom-20 right-20 w-48 h-48 rounded-full opacity-10"
+            style={{ background: "radial-gradient(circle, #06b6d4 0%, transparent 70%)" }} />
+        </div>
+        <div className="relative z-10 text-center px-12 max-w-md">
+          <div className="mb-8 flex justify-center">
+            <div className="w-20 h-20 rounded-2xl gradient-primary flex items-center justify-center glow-primary">
+              <Monitor className="w-10 h-10 text-white" />
+            </div>
+          </div>
+          <h2 className="mb-4" style={{ color: "#e8eaf6", fontSize: "1.8rem", fontWeight: 700 }}>
+            Employee Monitoring System
+          </h2>
+          <p style={{ color: "#8b8fa8", lineHeight: 1.7 }}>
+            Monitor productivity, track attendance, and manage your team with enterprise-grade tools.
+          </p>
+        </div>
+      </div>
+
+      {/* Right Panel */}
+      <div className="flex flex-1 items-center justify-center p-8 overflow-y-auto">
+        <div className="w-full max-w-md my-8">
+          <button onClick={onBack} className="flex items-center gap-2 mb-6 hover:opacity-70 transition-opacity"
+            style={{ color: "var(--muted-foreground)", fontSize: "0.875rem" }}>
+            <ChevronLeft className="w-4 h-4" /> Back to Login
+          </button>
+
+          <h2 className="mb-1" style={{ fontWeight: 700 }}>Create an account</h2>
+          <p className="mb-6" style={{ color: "var(--muted-foreground)" }}>Get started with Employee Monitoring System</p>
+
+          {error && (
+            <div className="flex items-center gap-2 mb-4 p-3 rounded-xl"
+              style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--destructive)" }}>
+              <AlertCircle className="w-4 h-4" />
+              <span style={{ fontSize: "0.875rem" }}>{error}</span>
+            </div>
+          )}
+
+          <div className="space-y-4">
+            <div>
+              <label className="block mb-1.5" style={{ fontSize: "0.875rem" }}>Full Name</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
+                <input
+                  type="text"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  placeholder="John Doe"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block mb-1.5" style={{ fontSize: "0.875rem" }}>Email Address</label>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={e => setEmail(e.target.value)}
+                  placeholder="name@company.com"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block mb-1.5" style={{ fontSize: "0.875rem" }}>Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  placeholder="Create a password"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block mb-1.5" style={{ fontSize: "0.875rem" }}>Confirm Password</label>
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
+                <input
+                  type="password"
+                  value={confirm}
+                  onChange={e => setConfirm(e.target.value)}
+                  placeholder="Confirm your password"
+                  className="w-full pl-11 pr-4 py-3 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}
+                />
+              </div>
+            </div>
+
+            <label className="flex items-center gap-2 cursor-pointer mt-2">
+              <div
+                onClick={() => setTerms(!terms)}
+                className="w-5 h-5 rounded flex items-center justify-center transition-all cursor-pointer"
+                style={{
+                  background: terms ? "var(--primary)" : "var(--input-background)",
+                  border: `1px solid ${terms ? "var(--primary)" : "var(--border)"}`,
+                }}
+              >
+                {terms && <CheckCircle className="w-3 h-3 text-white" />}
+              </div>
+              <span style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>
+                I agree to the Terms & Conditions
+              </span>
+            </label>
+
+            <button
+              onClick={handleRegister}
+              disabled={loading}
+              className="w-full py-3.5 rounded-xl gradient-primary text-white flex items-center justify-center gap-2 transition-all hover:opacity-90 hover:scale-[1.01] active:scale-95 disabled:opacity-70"
+              style={{ fontWeight: 600 }}
+            >
+              {loading ? (
+                <><RefreshCw className="w-4 h-4 animate-spin" /> Creating account...</>
+              ) : (
+                <>Sign Up <ArrowRight className="w-4 h-4" /></>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AuthScreens({ onLogin }: AuthScreensProps) {
   const [view, setView] = useState<AuthView>("splash");
 
   if (view === "splash") return <SplashScreen onNext={() => setView("login")} />;
-  if (view === "login") return <LoginScreen onLogin={onLogin} onForgot={() => setView("forgot")} />;
+  if (view === "login") return <LoginScreen onLogin={onLogin} onForgot={() => setView("forgot")} onRegister={() => setView("register")} />;
+  if (view === "register") return <RegisterScreen onBack={() => setView("login")} onSuccess={() => setView("success")} />;
   if (view === "forgot") return <ForgotPasswordScreen onBack={() => setView("login")} onReset={() => setView("reset")} />;
   if (view === "reset") return <ResetPasswordScreen onBack={() => setView("forgot")} onSuccess={() => setView("success")} />;
   if (view === "success") return <SuccessScreen onLogin={() => setView("login")} />;

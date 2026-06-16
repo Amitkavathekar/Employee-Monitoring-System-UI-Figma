@@ -1,41 +1,9 @@
 import { useState } from "react";
 import {
   Clock, CheckCircle, TrendingUp, Activity, Calendar,
-  Target, Zap, Coffee, Monitor, ArrowUp, ArrowDown, Play
+  Target, Coffee, Monitor, ArrowUp, ArrowDown, Play,
+  LogIn, LogOut, XCircle, AlertCircle, Bell
 } from "lucide-react";
-import {
-  AreaChart, Area, BarChart, Bar, LineChart, Line,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell
-} from "recharts";
-
-const weeklyProductivity = [
-  { day: "Mon", score: 88, hours: 8.2 },
-  { day: "Tue", score: 92, hours: 8.5 },
-  { day: "Wed", score: 78, hours: 7.8 },
-  { day: "Thu", score: 95, hours: 8.8 },
-  { day: "Fri", score: 85, hours: 8.0 },
-  { day: "Sat", score: 60, hours: 5.5 },
-  { day: "Sun", score: 0, hours: 0 },
-];
-
-const monthlyData = [
-  { week: "W1", score: 82 }, { week: "W2", score: 87 }, { week: "W3", score: 91 }, { week: "W4", score: 88 },
-];
-
-const attendanceTrend = [
-  { month: "Jan", present: 22, absent: 1, late: 1 },
-  { month: "Feb", present: 20, absent: 0, late: 0 },
-  { month: "Mar", present: 23, absent: 1, late: 0 },
-  { month: "Apr", present: 21, absent: 2, late: 1 },
-  { month: "May", present: 22, absent: 0, late: 2 },
-  { month: "Jun", present: 10, absent: 0, late: 0 },
-];
-
-const sessionTimeline = [
-  { time: "9:00", activity: 100 }, { time: "10:00", activity: 95 }, { time: "11:00", activity: 85 },
-  { time: "12:00", activity: 20 }, { time: "13:00", activity: 90 }, { time: "14:00", activity: 88 },
-  { time: "15:00", activity: 92 }, { time: "16:00", activity: 78 }, { time: "17:00", activity: 65 },
-];
 
 const recentActivities = [
   { id: 1, action: "Checked In", time: "9:02 AM", icon: CheckCircle, color: "#10b981" },
@@ -45,13 +13,12 @@ const recentActivities = [
   { id: 5, action: "Recording Started", time: "2:00 PM", icon: Activity, color: "#ef4444" },
 ];
 
-const calendarDays = Array.from({ length: 30 }, (_, i) => ({
-  day: i + 1,
-  status: [0, 5, 6, 12, 13, 19, 20, 26, 27].includes(i) ? "off"
-    : [2, 8].includes(i) ? "late"
-    : i > 13 ? "future"
-    : "present"
-}));
+const dashboardNotifs = [
+  { id: 1, title: "Check-in Reminder", message: "Don't forget to check in! Your shift started 5 minutes ago.", time: "9:05 AM", read: false, color: "#6366f1" },
+  { id: 2, title: "Screenshot Captured", message: "Automatic screenshot captured at 9:30 AM", time: "9:30 AM", read: false, color: "#06b6d4" },
+  { id: 3, title: "Recording Started", message: "Screen recording has been initiated by admin", time: "2:00 PM", read: false, color: "#ef4444" },
+  { id: 4, title: "Break Time Alert", message: "You've been working for 4 hours. Take a break!", time: "1:00 PM", read: true, color: "#f59e0b" },
+];
 
 function StatCard({ label, value, sub, icon: Icon, color, trend }: any) {
   return (
@@ -77,66 +44,117 @@ function StatCard({ label, value, sub, icon: Icon, color, trend }: any) {
 }
 
 export function EmployeeDashboard() {
-  const [sessionActive, setSessionActive] = useState(true);
+  const [notifs, setNotifs] = useState(dashboardNotifs);
+  const [checkedIn, setCheckedIn] = useState(true);
+  const [onBreak, setOnBreak] = useState(false);
+  const [checkInTime] = useState("09:02 AM");
+  const unreadCount = notifs.filter(n => !n.read).length;
+
+  const handleMarkRead = (id: number) => {
+    setNotifs(notifs.map(n => n.id === id ? { ...n, read: true } : n));
+  };
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
-      {/* Live Session Banner */}
-      {sessionActive && (
-        <div className="rounded-2xl p-4 flex items-center justify-between"
-          style={{ background: "rgba(99,102,241,0.1)", border: "1px solid rgba(99,102,241,0.2)" }}>
-          <div className="flex items-center gap-3">
-            <div className="w-3 h-3 rounded-full animate-pulse-dot" style={{ background: "#10b981" }} />
-            <div>
-              <span style={{ fontWeight: 600, color: "var(--primary)" }}>Active Session</span>
-              <span style={{ color: "var(--muted-foreground)", fontSize: "0.875rem" }}> · Started at 9:02 AM · Duration: 6h 23m</span>
-            </div>
+      {/* Stat Cards - 5 Cards Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+        {/* Card 1: Check In/Out */}
+        <button
+          onClick={() => setCheckedIn(!checkedIn)}
+          className="rounded-2xl p-5 flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 text-center w-full"
+          style={{
+            background: checkedIn ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)",
+            border: `1px solid ${checkedIn ? "rgba(239,68,68,0.3)" : "rgba(16,185,129,0.3)"}`,
+          }}>
+          {checkedIn ? <LogOut className="w-8 h-8" style={{ color: "#ef4444" }} /> : <LogIn className="w-8 h-8" style={{ color: "#10b981" }} />}
+          <div>
+            <span className="block font-bold text-sm" style={{ color: checkedIn ? "#ef4444" : "#10b981" }}>
+              {checkedIn ? "Check Out" : "Check In"}
+            </span>
+            {checkedIn && <span className="block text-[0.7rem] text-muted-foreground mt-1">In since {checkInTime}</span>}
           </div>
-          <button
-            onClick={() => setSessionActive(false)}
-            className="px-4 py-1.5 rounded-xl text-white transition-all hover:opacity-80"
-            style={{ background: "var(--destructive)", fontSize: "0.8rem", fontWeight: 600 }}>
-            End Session
-          </button>
-        </div>
-      )}
+        </button>
 
-      {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard label="Today's Hours" value="6h 23m" sub="Target: 8h 0m" icon={Clock} color="#6366f1" trend={5} />
-        <StatCard label="Productivity Score" value="92%" sub="Above average" icon={TrendingUp} color="#10b981" trend={8} />
-        <StatCard label="Active Time" value="5h 48m" sub="91% of session" icon={Activity} color="#06b6d4" trend={-2} />
+        {/* Card 2: Break */}
+        <button
+          onClick={() => setOnBreak(!onBreak)}
+          disabled={!checkedIn}
+          className="rounded-2xl p-5 flex flex-col items-center justify-center gap-3 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50 text-center w-full"
+          style={{
+            background: onBreak ? "rgba(245,158,11,0.1)" : "rgba(6,182,212,0.1)",
+            border: `1px solid ${onBreak ? "rgba(245,158,11,0.3)" : "rgba(6,182,212,0.3)"}`,
+          }}>
+          {onBreak ? <Play className="w-8 h-8" style={{ color: "#f59e0b" }} /> : <Coffee className="w-8 h-8" style={{ color: "#06b6d4" }} />}
+          <div>
+            <span className="block font-bold text-sm" style={{ color: onBreak ? "#f59e0b" : "#06b6d4" }}>
+              {onBreak ? "End Break" : "Start Break"}
+            </span>
+            <span className="block text-[0.7rem] text-muted-foreground mt-1">
+              {onBreak ? "Started 12:00 PM" : "No active break"}
+            </span>
+          </div>
+        </button>
+
+        {/* Card 3: Today's Status */}
+        <div className="rounded-2xl p-5 flex flex-col justify-center gap-1" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Today's Status</div>
+          <div className="flex items-center gap-2 my-1">
+            <CheckCircle className="w-5 h-5" style={{ color: "#10b981" }} />
+            <span style={{ fontWeight: 700, color: "#10b981", fontSize: "1.1rem" }}>Present</span>
+          </div>
+          <div style={{ fontSize: "0.7rem", color: "var(--muted-foreground)" }}>On time · Check-in 09:02</div>
+        </div>
+
+        {/* Card 4: Working Hours */}
+        <div className="rounded-2xl p-5 flex flex-col justify-center gap-1" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Working Hours</div>
+          <div style={{ fontWeight: 700, fontSize: "1.6rem", color: "var(--primary)", lineHeight: 1.1, margin: "4px 0" }}>6:23</div>
+          <div style={{ fontSize: "0.7rem", color: "var(--muted-foreground)" }}>Break: 30m · Active: 5h 53m</div>
+        </div>
+
+        {/* Card 5: Tasks Completed (Original 4th card) */}
         <StatCard label="Tasks Completed" value="12 / 15" sub="80% done" icon={Target} color="#f59e0b" trend={15} />
       </div>
 
-      {/* Charts Row */}
+      {/* Grid: Notifications + Monthly Summary */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Weekly Productivity */}
+        {/* Notifications Section */}
         <div className="lg:col-span-2 rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="flex items-center justify-between mb-4">
-            <h3 style={{ fontWeight: 600 }}>Weekly Productivity</h3>
-            <span className="px-2 py-1 rounded-lg" style={{ background: "var(--muted)", fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
-              This Week
-            </span>
+            <div className="flex items-center gap-2">
+              <h3 style={{ fontWeight: 600 }}>Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded text-white text-[0.65rem] font-bold" style={{ background: "var(--primary)" }}>
+                  {unreadCount} UNREAD
+                </span>
+              )}
+            </div>
+            <button onClick={() => setNotifs(notifs.map(n => ({ ...n, read: true })))}
+              style={{ color: "var(--primary)", fontSize: "0.75rem", fontWeight: 600 }} className="hover:underline">
+              Mark all read
+            </button>
           </div>
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={weeklyProductivity}>
-              <defs>
-                <linearGradient id="prodGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="day" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[0, 100]} />
-              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-              <Area type="monotone" dataKey="score" stroke="#6366f1" fill="url(#prodGrad)" strokeWidth={2.5} dot={{ r: 4, fill: "#6366f1" }} />
-            </AreaChart>
-          </ResponsiveContainer>
+          <div className="space-y-3 max-h-[200px] overflow-y-auto pr-1">
+            {notifs.map((n) => (
+              <div key={n.id} onClick={() => handleMarkRead(n.id)} className="flex gap-3 p-3 rounded-xl transition-all cursor-pointer hover:opacity-95"
+                style={{ background: n.read ? "var(--muted)" : `${n.color}10`, border: `1px solid ${n.read ? "var(--border)" : n.color + "25"}` }}>
+                <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: `${n.color}20` }}>
+                  <Bell className="w-4 h-4" style={{ color: n.color }} />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex justify-between items-start">
+                    <span style={{ fontWeight: n.read ? 500 : 700, fontSize: "0.8rem", color: "var(--foreground)" }} className="truncate">{n.title}</span>
+                    <span style={{ fontSize: "0.65rem", color: "var(--muted-foreground)" }}>{n.time}</span>
+                  </div>
+                  <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "2px", lineHeight: 1.4 }}>{n.message}</p>
+                </div>
+                {!n.read && <div className="w-1.5 h-1.5 rounded-full mt-2" style={{ background: n.color }} />}
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Attendance Status */}
+        {/* Attendance Summary (This Month) */}
         <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>This Month</h3>
           <div className="space-y-3">
@@ -158,66 +176,8 @@ export function EmployeeDashboard() {
             ))}
           </div>
           <div className="mt-4 p-3 rounded-xl text-center" style={{ background: "rgba(16,185,129,0.1)" }}>
-            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#10b981" }}>95%</div>
-            <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>Attendance Rate</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Session Timeline + Calendar */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Today's Session Timeline</h3>
-          <ResponsiveContainer width="100%" height={160}>
-            <BarChart data={sessionTimeline}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="time" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[0, 100]} />
-              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-              <Bar dataKey="activity" radius={[4, 4, 0, 0]}>
-                {sessionTimeline.map((entry, i) => (
-                  <Cell key={i} fill={entry.activity > 80 ? "#6366f1" : entry.activity > 40 ? "#06b6d4" : "#f59e0b"} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Mini Calendar */}
-        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <div className="flex items-center justify-between mb-4">
-            <h3 style={{ fontWeight: 600 }}>June 2026</h3>
-            <div className="flex gap-3" style={{ fontSize: "0.7rem" }}>
-              {[["#10b981", "Present"], ["#f59e0b", "Late"], ["#ef4444", "Absent"], ["var(--muted)", "Off"]].map(([color, label]) => (
-                <div key={label} className="flex items-center gap-1">
-                  <div className="w-2 h-2 rounded-full" style={{ background: color }} />
-                  <span style={{ color: "var(--muted-foreground)" }}>{label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          <div className="grid grid-cols-7 gap-1">
-            {["S", "M", "T", "W", "T", "F", "S"].map((d, i) => (
-              <div key={i} className="text-center py-1" style={{ fontSize: "0.7rem", color: "var(--muted-foreground)", fontWeight: 600 }}>{d}</div>
-            ))}
-            {calendarDays.map(({ day, status }) => (
-              <div key={day} className="aspect-square rounded-lg flex items-center justify-center transition-all hover:scale-110"
-                style={{
-                  fontSize: "0.75rem",
-                  fontWeight: status === "present" || status === "late" ? 600 : 400,
-                  background: status === "present" ? "rgba(16,185,129,0.15)"
-                    : status === "late" ? "rgba(245,158,11,0.15)"
-                    : status === "off" ? "var(--muted)"
-                    : "transparent",
-                  color: status === "present" ? "#10b981"
-                    : status === "late" ? "#f59e0b"
-                    : status === "future" ? "var(--muted-foreground)"
-                    : "var(--foreground)",
-                  opacity: status === "future" ? 0.4 : 1,
-                }}>
-                {day}
-              </div>
-            ))}
+            <div style={{ fontSize: "1.5rem", fontWeight: 700, color: "#10b981", lineHeight: 1 }}>95%</div>
+            <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "2px" }}>Attendance Rate</div>
           </div>
         </div>
       </div>

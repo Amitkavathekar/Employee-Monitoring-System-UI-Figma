@@ -1,6 +1,7 @@
+import { useState } from "react";
 import {
   Users, CheckCircle, XCircle, Wifi, TrendingUp, Clock, Camera, Video,
-  ArrowUp, ArrowDown, Activity
+  ArrowUp, ArrowDown, Activity, Bell
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
@@ -48,6 +49,19 @@ const attendancePie = [
   { name: "Leave", value: 2 },
 ];
 
+const mgrNotifs = [
+  { id: 1, title: "John Doe Checked In", message: "John Doe checked in at 9:02 AM — 2 minutes late", time: "2m ago", type: "late", read: false },
+  { id: 2, title: "Recording Started", message: "Emma Wilson started a screen recording session", time: "5m ago", type: "recording", read: false },
+  { id: 3, title: "New Employee Added", message: "Ryan Park has been added to the Engineering team", time: "1h ago", type: "employee", read: false },
+  { id: 4, title: "Mass Absence Alert", message: "5 employees are absent today — above average", time: "2h ago", type: "alert", read: true },
+  { id: 5, title: "System Backup", message: "Daily backup completed successfully", time: "3h ago", type: "system", read: true },
+  { id: 6, title: "Screenshot Quota", message: "Storage usage reached 80% of limit", time: "Yesterday", type: "alert", read: true },
+];
+
+const typeColors: Record<string, string> = {
+  late: "#f59e0b", recording: "#ef4444", employee: "#10b981", alert: "#ef4444", system: "#6366f1",
+};
+
 function MetricCard({ label, value, sub, icon: Icon, color, trend }: any) {
   return (
     <div className="rounded-2xl p-5 transition-all hover:scale-[1.01]"
@@ -71,21 +85,25 @@ function MetricCard({ label, value, sub, icon: Icon, color, trend }: any) {
 }
 
 export function ManagerDashboard() {
+  const [notifs, setNotifs] = useState(mgrNotifs);
+  const unreadCount = notifs.filter(n => !n.read).length;
+
+  const handleMarkRead = (id: number) => {
+    setNotifs(notifs.map(n => n.id === id ? { ...n, read: true } : n));
+  };
+
+  const handleMarkAllRead = () => {
+    setNotifs(notifs.map(n => ({ ...n, read: true })));
+  };
+
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
-      {/* Top Stats */}
+      {/* Top Stats - Single Row of 4 Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard label="Total Employees" value="55" sub="3 new this month" icon={Users} color="#6366f1" trend={5} />
         <MetricCard label="Present Today" value="46" sub="83.6% attendance" icon={CheckCircle} color="#10b981" trend={2} />
         <MetricCard label="Online Now" value="38" sub="Live sessions" icon={Wifi} color="#06b6d4" trend={-1} />
-        <MetricCard label="Avg Productivity" value="91%" sub="Team average" icon={TrendingUp} color="#f59e0b" trend={8} />
-      </div>
-
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard label="Absent Today" value="4" sub="Down from 6 yesterday" icon={XCircle} color="#ef4444" trend={-33} />
-        <MetricCard label="Avg Hours Today" value="7.2h" sub="Target: 8h" icon={Clock} color="#8b5cf6" />
-        <MetricCard label="Screenshots Today" value="1,240" sub="Across 46 employees" icon={Camera} color="#06b6d4" />
-        <MetricCard label="Active Recordings" value="12" sub="Currently recording" icon={Video} color="#ef4444" trend={0} />
       </div>
 
       {/* Charts Row 1 */}
@@ -130,40 +148,42 @@ export function ManagerDashboard() {
         </div>
       </div>
 
-      {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Productivity Trends (6 months)</h3>
-          <ResponsiveContainer width="100%" height={190}>
-            <AreaChart data={productivityTrend}>
-              <defs>
-                <linearGradient id="prodMgrGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="month" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[70, 100]} />
-              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-              <Area type="monotone" dataKey="avg" stroke="#6366f1" fill="url(#prodMgrGrad)" strokeWidth={2.5} dot={{ r: 4, fill: "#6366f1" }} />
-            </AreaChart>
-          </ResponsiveContainer>
+      {/* Notifications Section - Replacing Row 2 Charts */}
+      <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h3 style={{ fontWeight: 600 }}>Notifications Center</h3>
+            {unreadCount > 0 && (
+              <span className="px-1.5 py-0.5 rounded text-white text-[0.65rem] font-bold" style={{ background: "var(--primary)" }}>
+                {unreadCount} UNREAD
+              </span>
+            )}
+          </div>
+          <button onClick={handleMarkAllRead}
+            style={{ color: "var(--primary)", fontSize: "0.75rem", fontWeight: 600 }} className="hover:underline">
+            Mark all read
+          </button>
         </div>
-
-        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Department Productivity</h3>
-          <ResponsiveContainer width="100%" height={190}>
-            <BarChart data={deptProductivity} layout="vertical">
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-              <XAxis type="number" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[0, 100]} />
-              <YAxis type="category" dataKey="dept" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} width={80} />
-              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-              <Bar dataKey="score" radius={[0, 4, 4, 0]}>
-                {deptProductivity.map((_, i) => <Cell key={i} fill={pieColors[i]} />)}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1">
+          {notifs.map((n) => (
+            <div key={n.id}
+              onClick={() => handleMarkRead(n.id)}
+              className="rounded-2xl p-4 flex gap-4 cursor-pointer transition-all hover:scale-[1.005]"
+              style={{ background: n.read ? "var(--muted)" : `${typeColors[n.type] || "#6366f1"}08`, border: `1px solid ${n.read ? "var(--border)" : (typeColors[n.type] || "#6366f1") + "25"}` }}>
+              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                style={{ background: `${typeColors[n.type] || "#6366f1"}20` }}>
+                <Bell className="w-5 h-5" style={{ color: typeColors[n.type] || "#6366f1" }} />
+              </div>
+              <div className="flex-1">
+                <div className="flex justify-between items-start mb-1">
+                  <span style={{ fontWeight: n.read ? 400 : 600, fontSize: "0.9rem", color: "var(--foreground)" }}>{n.title}</span>
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", flexShrink: 0, marginLeft: "1rem" }}>{n.time}</span>
+                </div>
+                <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>{n.message}</p>
+              </div>
+              {!n.read && <div className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ background: typeColors[n.type] || "#6366f1" }} />}
+            </div>
+          ))}
         </div>
       </div>
 

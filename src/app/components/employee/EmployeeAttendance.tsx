@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { LogIn, LogOut, Coffee, Play, Download, Filter, Search, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react";
+import { Download, Search, Calendar, CheckCircle, Clock, XCircle, AlertCircle } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 const attendanceHistory = [
@@ -30,9 +30,6 @@ const statusConfig: Record<string, { color: string; bg: string; label: string; i
 };
 
 export function EmployeeAttendance() {
-  const [checkedIn, setCheckedIn] = useState(true);
-  const [onBreak, setOnBreak] = useState(false);
-  const [checkInTime] = useState("09:02 AM");
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
 
@@ -40,54 +37,6 @@ export function EmployeeAttendance() {
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
-      {/* Action Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <button
-          onClick={() => setCheckedIn(!checkedIn)}
-          className="rounded-2xl p-5 flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-95"
-          style={{
-            background: checkedIn ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)",
-            border: `1px solid ${checkedIn ? "rgba(239,68,68,0.3)" : "rgba(16,185,129,0.3)"}`,
-          }}>
-          {checkedIn ? <LogOut className="w-8 h-8" style={{ color: "#ef4444" }} /> : <LogIn className="w-8 h-8" style={{ color: "#10b981" }} />}
-          <span style={{ fontWeight: 600, color: checkedIn ? "#ef4444" : "#10b981" }}>
-            {checkedIn ? "Check Out" : "Check In"}
-          </span>
-          {checkedIn && <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>In since {checkInTime}</span>}
-        </button>
-
-        <button
-          onClick={() => setOnBreak(!onBreak)}
-          disabled={!checkedIn}
-          className="rounded-2xl p-5 flex flex-col items-center gap-3 transition-all hover:scale-[1.02] active:scale-95 disabled:opacity-50"
-          style={{
-            background: onBreak ? "rgba(245,158,11,0.1)" : "rgba(6,182,212,0.1)",
-            border: `1px solid ${onBreak ? "rgba(245,158,11,0.3)" : "rgba(6,182,212,0.3)"}`,
-          }}>
-          {onBreak ? <Play className="w-8 h-8" style={{ color: "#f59e0b" }} /> : <Coffee className="w-8 h-8" style={{ color: "#06b6d4" }} />}
-          <span style={{ fontWeight: 600, color: onBreak ? "#f59e0b" : "#06b6d4" }}>
-            {onBreak ? "End Break" : "Start Break"}
-          </span>
-          <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
-            {onBreak ? "Break started 12:00 PM" : "No active break"}
-          </span>
-        </button>
-
-        <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", marginBottom: "0.5rem" }}>Today's Status</div>
-          <div className="flex items-center gap-2 mt-auto">
-            <CheckCircle className="w-5 h-5" style={{ color: "#10b981" }} />
-            <span style={{ fontWeight: 700, color: "#10b981" }}>Present</span>
-          </div>
-          <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "0.5rem" }}>On time · Check-in 09:02</div>
-        </div>
-
-        <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", marginBottom: "0.5rem" }}>Working Hours</div>
-          <div style={{ fontWeight: 700, fontSize: "1.8rem", color: "var(--primary)", lineHeight: 1 }}>6:23</div>
-          <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "0.5rem" }}>Break: 30min · Active: 5h 53m</div>
-        </div>
-      </div>
 
       {/* Chart + Stats */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

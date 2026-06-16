@@ -25,40 +25,46 @@ import {
   NotificationsCenter,
   ManagerSettings,
 } from "./components/manager/ManagerPages";
+import { AdminDashboard } from "./components/admin/AdminDashboard";
+import { AdminRoleManagement } from "./components/admin/AdminRoleManagement";
+import { AdminReports } from "./components/admin/AdminReports";
+import { AdminAnalytics } from "./components/admin/AdminAnalytics";
 
 {/* MARKER-MAKE-KIT-INVOKED */}
 
 type AppState = "auth" | "app";
-type Role = "manager" | "employee";
+type Role = "admin" | "manager" | "employee";
 
-const employeePages: Record<string, React.ComponentType> = {
+const employeePages: Record<string, any> = {
   dashboard: EmployeeDashboard,
   attendance: EmployeeAttendance,
-  session: WorkSession,
   productivity: EmployeeProductivity,
-  screenshots: EmployeeScreenshots,
-  recordings: EmployeeRecordings,
-  activity: ActivityMonitoring,
-  notifications: EmployeeNotifications,
   profile: EmployeeProfile,
+  settings: EmployeeProfile,
 };
 
 const managerPages: Record<string, React.ComponentType> = {
   dashboard: ManagerDashboard,
   employees: EmployeeManagement,
-  live: LiveMonitoring,
   attendance: AttendanceManagement,
   productivity: ProductivityMonitoring,
   screenshots: ScreenshotMonitoring,
   recordings: RecordingMonitoring,
   reports: Reports,
-  notifications: NotificationsCenter,
+  settings: ManagerSettings,
+};
+
+const adminPages: Record<string, React.ComponentType> = {
+  dashboard: AdminDashboard,
+  employees: AdminRoleManagement,
+  reports: AdminReports,
+  analytics: AdminAnalytics,
   settings: ManagerSettings,
 };
 
 export default function App() {
   const [appState, setAppState] = useState<AppState>("auth");
-  const [role, setRole] = useState<Role>("manager");
+  const [role, setRole] = useState<Role>("admin");
   const [activePage, setActivePage] = useState("dashboard");
   const [isDark, setIsDark] = useState(true);
 
@@ -89,7 +95,7 @@ export default function App() {
     );
   }
 
-  const pages = role === "manager" ? managerPages : employeePages;
+  const pages = role === "admin" ? adminPages : role === "manager" ? managerPages : employeePages;
   const PageComponent = pages[activePage] || pages["dashboard"];
 
   return (
@@ -115,7 +121,7 @@ export default function App() {
           onLogout={handleLogout}
         />
         <main className="flex-1 overflow-hidden" style={{ background: "var(--background)" }}>
-          <PageComponent />
+          <PageComponent activePage={activePage} />
         </main>
       </div>
     </div>
