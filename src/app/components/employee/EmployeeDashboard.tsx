@@ -109,47 +109,25 @@ export function EmployeeDashboard() {
 
         {/* Attendance Summary (This Month - Pie Chart) */}
         <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)", height: "380px" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "0.5rem" }}>This Month</h3>
-          
-          <div className="flex flex-col items-center justify-center flex-1">
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie
-                  data={attendanceData.filter(d => d.value > 0)}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={65}
-                  paddingAngle={3}
-                  dataKey="value"
-                >
-                  {attendanceData.filter(d => d.value > 0).map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: "var(--card)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "12px",
-                    fontSize: "0.8rem",
-                    color: "var(--foreground)"
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            
-            <div className="grid grid-cols-2 gap-x-4 gap-y-2 w-full mt-3">
-              {attendanceData.map((d) => (
-                <div key={d.name} className="flex items-center justify-between text-xs p-1 rounded hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-1.5 min-w-0">
-                    <div className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: d.color }} />
-                    <span className="truncate text-muted-foreground">{d.name}</span>
-                  </div>
-                  <span className="font-semibold">{d.value} days</span>
+          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>This Month</h3>
+          <ResponsiveContainer width="100%" height={180}>
+            <PieChart>
+              <Pie data={attendanceData} cx="50%" cy="50%" innerRadius={50} outerRadius={80} paddingAngle={3} dataKey="value">
+                {attendanceData.map((entry, i) => <Cell key={i} fill={entry.color} />)}
+              </Pie>
+              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
+            </PieChart>
+          </ResponsiveContainer>
+          <div className="space-y-1 mt-2">
+            {attendanceData.map((item) => (
+              <div key={item.name} className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full" style={{ background: item.color }} />
+                  <span style={{ fontSize: "0.8rem" }}>{item.name}</span>
                 </div>
-              ))}
-            </div>
+                <span style={{ fontSize: "0.8rem", fontWeight: 600 }}>{item.value} days</span>
+              </div>
+            ))}
           </div>
         </div>
       </div>

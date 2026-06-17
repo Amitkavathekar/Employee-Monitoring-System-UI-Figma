@@ -25,7 +25,7 @@ import {
   NotificationsCenter,
   ManagerSettings,
 } from "./components/manager/ManagerPages";
-import { ManagerApplications, ManagerWebsites } from "./components/manager/ManagerMonitoring";
+import { ManagerActivity } from "./components/manager/ManagerMonitoring";
 import { AdminDashboard } from "./components/admin/AdminDashboard";
 import { AdminRoleManagement } from "./components/admin/AdminRoleManagement";
 import { AdminReports } from "./components/admin/AdminReports";
@@ -52,8 +52,7 @@ const managerPages: Record<string, React.ComponentType> = {
   productivity: ProductivityMonitoring,
   screenshots: ScreenshotMonitoring,
   recordings: RecordingMonitoring,
-  applications: ManagerApplications,
-  websites: ManagerWebsites,
+  activity: ManagerActivity,
   reports: Reports,
   settings: ManagerSettings,
 };

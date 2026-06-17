@@ -1,1001 +1,440 @@
 import { useState } from "react";
 import {
-  Search, Laptop, Globe, Calendar, User, Building, FileText, Check, Download,
-  Eye, ChevronDown, ChevronUp, AlertTriangle, TrendingUp, Info, HelpCircle, X
+  Search, Keyboard, MousePointerClick, Clock, Target, Calendar,
+  ArrowLeft, Laptop, Globe, Eye
 } from "lucide-react";
 import {
-  BarChart, Bar, Cell, PieChart, Pie, ResponsiveContainer, XAxis, YAxis,
+  BarChart, Bar, ResponsiveContainer, XAxis, YAxis,
   Tooltip, CartesianGrid, Legend
 } from "recharts";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DATA TYPES & MOCK DATA
+// DATA TYPES & HIGH FIDELITY MOCK DATA
 // ─────────────────────────────────────────────────────────────────────────────
 
-interface AppUsage {
-  id: number;
-  employeeName: string;
-  department: string;
-  appName: string;
-  category: "Productive" | "Non-Productive";
-  startTime: string;
-  endTime: string;
-  duration: string; // duration of this single record
-  durationMs: number; // in milliseconds for calculation
-  totalUsageTime: string; // total time spent on this app
-  appDetails: { name: string; time: string; durationMs: number }[];
+interface AppUsageItem {
+  name: string;
+  duration: string;
+  val: number;
+  max: number;
+  color: string;
 }
 
-interface WebActivity {
-  id: number;
-  employeeName: string;
-  department: string;
-  websiteName: string;
-  category: "Development" | "Research" | "Social Media" | "Entertainment" | "News";
-  visits: number;
-  timeSpent: string;
-  timeSpentMs: number;
-  status: "Productive" | "Non-Productive";
-  webDetails: { url: string; time: string; durationMs: number }[];
+interface WebActivityItem {
+  name: string;
+  duration: string;
+  val: number;
+  max: number;
+  color: string;
 }
 
-const mockAppUsages: AppUsage[] = [
+interface EmployeeActivity {
+  id: number;
+  name: string;
+  dept: string;
+  status: "online" | "offline" | "break";
+  keystrokes: string;
+  clicks: string;
+  activeTime: string;
+  initials: string;
+  hourlyData: { time: string; keyboard: number; mouse: number }[];
+  apps: AppUsageItem[];
+  websites: WebActivityItem[];
+  idleTime: string;
+}
+
+const activityEmployees: EmployeeActivity[] = [
   {
     id: 1,
-    employeeName: "Sarah Johnson",
-    department: "Engineering",
-    appName: "VS Code",
-    category: "Productive",
-    startTime: "09:00 AM",
-    endTime: "01:30 PM",
-    duration: "4h 30m",
-    durationMs: 16200000,
-    totalUsageTime: "11h 20m",
-    appDetails: [
-      { name: "VS Code", time: "4h 30m", durationMs: 16200000 },
-      { name: "Chrome", time: "2h 50m", durationMs: 10200000 },
-      { name: "Figma", time: "3h 10m", durationMs: 11400000 },
-      { name: "Slack", time: "1h 20m", durationMs: 4800000 },
-      { name: "Spotify", time: "30m", durationMs: 1800000 },
-    ]
+    name: "Sarah Johnson",
+    dept: "Engineering",
+    status: "online",
+    keystrokes: "18,245",
+    clicks: "3,892",
+    activeTime: "5h 48m",
+    initials: "SJ",
+    hourlyData: [
+      { time: "8:00", keyboard: 85, mouse: 75 },
+      { time: "9:00", keyboard: 98, mouse: 86 },
+      { time: "10:00", keyboard: 92, mouse: 82 },
+      { time: "11:00", keyboard: 78, mouse: 68 },
+      { time: "12:00", keyboard: 80, mouse: 70 },
+      { time: "13:00", keyboard: 90, mouse: 84 },
+      { time: "14:00", keyboard: 60, mouse: 62 },
+      { time: "15:00", keyboard: 75, mouse: 72 },
+      { time: "16:00", keyboard: 85, mouse: 78 },
+      { time: "17:00", keyboard: 88, mouse: 80 },
+    ],
+    apps: [
+      { name: "VS Code", duration: "180m", val: 180, max: 180, color: "#6366f1" },
+      { name: "Chrome", duration: "120m", val: 120, max: 180, color: "#06b6d4" },
+      { name: "Slack", duration: "60m", val: 60, max: 180, color: "#f59e0b" },
+      { name: "Figma", duration: "45m", val: 45, max: 180, color: "#8b5cf6" },
+      { name: "Terminal", duration: "30m", val: 30, max: 180, color: "#10b981" },
+    ],
+    websites: [
+      { name: "github.com", duration: "95m", val: 95, max: 95, color: "#6366f1" },
+      { name: "docs.company.com", duration: "60m", val: 60, max: 95, color: "#06b6d4" },
+      { name: "stackoverflow.com", duration: "45m", val: 45, max: 95, color: "#f59e0b" },
+      { name: "notion.so", duration: "30m", val: 30, max: 95, color: "#8b5cf6" },
+    ],
+    idleTime: "35 min"
   },
   {
     id: 2,
-    employeeName: "Mike Chen",
-    department: "Design",
-    appName: "Figma",
-    category: "Productive",
-    startTime: "09:30 AM",
-    endTime: "12:45 PM",
-    duration: "3h 15m",
-    durationMs: 11700000,
-    totalUsageTime: "8h 10m",
-    appDetails: [
-      { name: "Figma", time: "4h 10m", durationMs: 15000000 },
-      { name: "Chrome", time: "2h 10m", durationMs: 7800000 },
-      { name: "Slack", time: "1h 15m", durationMs: 4500000 },
-      { name: "YouTube", time: "35m", durationMs: 2100000 },
-    ]
+    name: "Mike Chen",
+    dept: "Design",
+    status: "online",
+    keystrokes: "12,450",
+    clicks: "2,910",
+    activeTime: "4h 15m",
+    initials: "MC",
+    hourlyData: [
+      { time: "8:00", keyboard: 60, mouse: 70 },
+      { time: "9:00", keyboard: 75, mouse: 80 },
+      { time: "10:00", keyboard: 80, mouse: 85 },
+      { time: "11:00", keyboard: 68, mouse: 75 },
+      { time: "12:00", keyboard: 70, mouse: 75 },
+      { time: "13:00", keyboard: 85, mouse: 90 },
+      { time: "14:00", keyboard: 55, mouse: 60 },
+      { time: "15:00", keyboard: 70, mouse: 80 },
+      { time: "16:00", keyboard: 78, mouse: 85 },
+      { time: "17:00", keyboard: 80, mouse: 82 },
+    ],
+    apps: [
+      { name: "Figma", duration: "240m", val: 240, max: 240, color: "#8b5cf6" },
+      { name: "Chrome", duration: "90m", val: 90, max: 240, color: "#06b6d4" },
+      { name: "Slack", duration: "45m", val: 45, max: 240, color: "#f59e0b" },
+      { name: "Illustrator", duration: "30m", val: 30, max: 240, color: "#6366f1" },
+    ],
+    websites: [
+      { name: "figma.com", duration: "120m", val: 120, max: 120, color: "#8b5cf6" },
+      { name: "dribbble.com", duration: "50m", val: 50, max: 120, color: "#06b6d4" },
+      { name: "pinterest.com", duration: "30m", val: 30, max: 120, color: "#f59e0b" },
+    ],
+    idleTime: "25 min"
   },
   {
     id: 3,
-    employeeName: "Emma Wilson",
-    department: "Marketing",
-    appName: "Chrome",
-    category: "Productive",
-    startTime: "10:00 AM",
-    endTime: "12:30 PM",
-    duration: "2h 30m",
-    durationMs: 9000000,
-    totalUsageTime: "7h 45m",
-    appDetails: [
-      { name: "Chrome", time: "3h 50m", durationMs: 13800000 },
-      { name: "Slack", time: "1h 40m", durationMs: 6000000 },
-      { name: "PowerPoint", time: "1h 30m", durationMs: 5400000 },
-      { name: "Facebook", time: "45m", durationMs: 2700000 },
-    ]
+    name: "Emma Wilson",
+    dept: "Marketing",
+    status: "break",
+    keystrokes: "8,920",
+    clicks: "1,850",
+    activeTime: "3h 30m",
+    initials: "EW",
+    hourlyData: [
+      { time: "8:00", keyboard: 40, mouse: 45 },
+      { time: "9:00", keyboard: 65, mouse: 60 },
+      { time: "10:00", keyboard: 70, mouse: 75 },
+      { time: "11:00", keyboard: 58, mouse: 60 },
+      { time: "12:00", keyboard: 50, mouse: 55 },
+      { time: "13:00", keyboard: 75, mouse: 80 },
+      { time: "14:00", keyboard: 30, mouse: 35 },
+      { time: "15:00", keyboard: 50, mouse: 60 },
+      { time: "16:00", keyboard: 65, mouse: 70 },
+      { time: "17:00", keyboard: 70, mouse: 72 },
+    ],
+    apps: [
+      { name: "Chrome", duration: "150m", val: 150, max: 150, color: "#06b6d4" },
+      { name: "Slack", duration: "60m", val: 60, max: 150, color: "#f59e0b" },
+      { name: "Excel", duration: "45m", val: 45, max: 150, color: "#10b981" },
+    ],
+    websites: [
+      { name: "linkedin.com", duration: "80m", val: 80, max: 80, color: "#6366f1" },
+      { name: "facebook.com", duration: "40m", val: 40, max: 80, color: "#ef4444" },
+      { name: "twitter.com", duration: "30m", val: 30, max: 80, color: "#06b6d4" },
+    ],
+    idleTime: "50 min"
   },
   {
     id: 4,
-    employeeName: "James Lee",
-    department: "Engineering",
-    appName: "VS Code",
-    category: "Productive",
-    startTime: "09:15 AM",
-    endTime: "02:15 PM",
-    duration: "5h 00m",
-    durationMs: 18000000,
-    totalUsageTime: "9h 30m",
-    appDetails: [
-      { name: "VS Code", time: "5h 10m", durationMs: 18600000 },
-      { name: "Chrome", time: "2h 30m", durationMs: 9000000 },
-      { name: "Slack", time: "1h 10m", durationMs: 4200000 },
-      { name: "Discord", time: "40m", durationMs: 2400000 },
-    ]
+    name: "James Lee",
+    dept: "Engineering",
+    status: "online",
+    keystrokes: "15,800",
+    clicks: "3,200",
+    activeTime: "5h 10m",
+    initials: "JL",
+    hourlyData: [
+      { time: "8:00", keyboard: 75, mouse: 68 },
+      { time: "9:00", keyboard: 90, mouse: 80 },
+      { time: "10:00", keyboard: 85, mouse: 78 },
+      { time: "11:00", keyboard: 70, mouse: 65 },
+      { time: "12:00", keyboard: 72, mouse: 68 },
+      { time: "13:00", keyboard: 88, mouse: 80 },
+      { time: "14:00", keyboard: 50, mouse: 55 },
+      { time: "15:00", keyboard: 70, mouse: 70 },
+      { time: "16:00", keyboard: 80, mouse: 75 },
+      { time: "17:00", keyboard: 82, mouse: 78 },
+    ],
+    apps: [
+      { name: "VS Code", duration: "200m", val: 200, max: 200, color: "#6366f1" },
+      { name: "Chrome", duration: "100m", val: 100, max: 200, color: "#06b6d4" },
+      { name: "Slack", duration: "50m", val: 50, max: 200, color: "#f59e0b" },
+    ],
+    websites: [
+      { name: "github.com", duration: "85m", val: 85, max: 85, color: "#6366f1" },
+      { name: "stackoverflow.com", duration: "60m", val: 60, max: 85, color: "#f59e0b" },
+      { name: "reddit.com", duration: "25m", val: 25, max: 85, color: "#ef4444" },
+    ],
+    idleTime: "40 min"
   },
   {
     id: 5,
-    employeeName: "Priya Patel",
-    department: "Sales",
-    appName: "Salesforce",
-    category: "Productive",
-    startTime: "09:45 AM",
-    endTime: "01:15 PM",
-    duration: "3h 30m",
-    durationMs: 12600000,
-    totalUsageTime: "8h 25m",
-    appDetails: [
-      { name: "Salesforce", time: "4h 20m", durationMs: 15600000 },
-      { name: "Chrome", time: "2h 20m", durationMs: 8400000 },
-      { name: "Slack", time: "40m", durationMs: 2400000 },
-      { name: "Netflix", time: "1h 05m", durationMs: 3900000 },
-    ]
+    name: "Priya Patel",
+    dept: "Sales",
+    status: "offline",
+    keystrokes: "9,150",
+    clicks: "2,050",
+    activeTime: "2h 45m",
+    initials: "PP",
+    hourlyData: [
+      { time: "8:00", keyboard: 50, mouse: 55 },
+      { time: "9:00", keyboard: 60, mouse: 62 },
+      { time: "10:00", keyboard: 65, mouse: 68 },
+      { time: "11:00", keyboard: 50, mouse: 55 },
+      { time: "12:00", keyboard: 45, mouse: 50 },
+      { time: "13:00", keyboard: 60, mouse: 65 },
+      { time: "14:00", keyboard: 35, mouse: 40 },
+      { time: "15:00", keyboard: 40, mouse: 48 },
+      { time: "16:00", keyboard: 55, mouse: 58 },
+      { time: "17:00", keyboard: 58, mouse: 60 },
+    ],
+    apps: [
+      { name: "Salesforce", duration: "120m", val: 120, max: 120, color: "#06b6d4" },
+      { name: "Chrome", duration: "60m", val: 60, max: 120, color: "#6366f1" },
+      { name: "Slack", duration: "30m", val: 30, max: 120, color: "#f59e0b" },
+    ],
+    websites: [
+      { name: "salesforce.com", duration: "90m", val: 90, max: 90, color: "#06b6d4" },
+      { name: "linkedin.com", duration: "40m", val: 40, max: 90, color: "#6366f1" },
+      { name: "youtube.com", duration: "20m", val: 20, max: 90, color: "#ef4444" },
+    ],
+    idleTime: "15 min"
   }
 ];
 
-const mockWebActivities: WebActivity[] = [
-  {
-    id: 1,
-    employeeName: "Sarah Johnson",
-    department: "Engineering",
-    websiteName: "github.com",
-    category: "Development",
-    visits: 48,
-    timeSpent: "4h 20m",
-    timeSpentMs: 15600000,
-    status: "Productive",
-    webDetails: [
-      { url: "github.com", time: "2h 00m", durationMs: 7200000 },
-      { url: "stackoverflow.com", time: "1h 15m", durationMs: 4500000 },
-      { url: "react.dev/docs", time: "45m", durationMs: 2700000 },
-      { url: "linkedin.com", time: "20m", durationMs: 1200000 },
-      { url: "twitter.com", time: "15m", durationMs: 900000 },
-    ]
-  },
-  {
-    id: 2,
-    employeeName: "Mike Chen",
-    department: "Design",
-    websiteName: "figma.com",
-    category: "Research",
-    visits: 35,
-    timeSpent: "3h 40m",
-    timeSpentMs: 13200000,
-    status: "Productive",
-    webDetails: [
-      { url: "figma.com", time: "2h 30m", durationMs: 9000000 },
-      { url: "dribbble.com", time: "45m", durationMs: 2700000 },
-      { url: "pinterest.com", time: "25m", durationMs: 1500000 },
-    ]
-  },
-  {
-    id: 3,
-    employeeName: "Emma Wilson",
-    department: "Marketing",
-    websiteName: "linkedin.com",
-    category: "Social Media",
-    visits: 25,
-    timeSpent: "1h 50m",
-    timeSpentMs: 6600000,
-    status: "Non-Productive",
-    webDetails: [
-      { url: "facebook.com", time: "50m", durationMs: 3000000 },
-      { url: "linkedin.com", time: "45m", durationMs: 2700000 },
-      { url: "twitter.com", time: "15m", durationMs: 900000 },
-    ]
-  },
-  {
-    id: 4,
-    employeeName: "James Lee",
-    department: "Engineering",
-    websiteName: "stackoverflow.com",
-    category: "Development",
-    visits: 42,
-    timeSpent: "3h 10m",
-    timeSpentMs: 11400000,
-    status: "Productive",
-    webDetails: [
-      { url: "github.com", time: "1h 40m", durationMs: 6000000 },
-      { url: "stackoverflow.com", time: "1h 10m", durationMs: 4200000 },
-      { url: "reddit.com/r/reactjs", time: "20m", durationMs: 1200000 },
-    ]
-  },
-  {
-    id: 5,
-    employeeName: "Priya Patel",
-    department: "Sales",
-    websiteName: "salesforce.com",
-    category: "Research",
-    visits: 30,
-    timeSpent: "2h 55m",
-    timeSpentMs: 10500000,
-    status: "Productive",
-    webDetails: [
-      { url: "salesforce.com", time: "2h 10m", durationMs: 7800000 },
-      { url: "linkedin.com/sales", time: "35m", durationMs: 2100000 },
-      { url: "netflix.com", time: "10m", durationMs: 600000 },
-    ]
-  }
-];
-
-// Helper to format ms to readable string
-const formatMsToTime = (ms: number): string => {
-  const totalMinutes = Math.floor(ms / 60000);
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
+const statusColors: Record<string, { color: string; bg: string }> = {
+  online: { color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+  offline: { color: "#6b7280", bg: "rgba(107,114,128,0.1)" },
+  break: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-// TOAST ALERT COMPONENT
-// ─────────────────────────────────────────────────────────────────────────────
-function Toast({ show, message, onClose }: { show: boolean; message: string; onClose: () => void }) {
-  if (!show) return null;
-  return (
-    <div className="fixed bottom-6 right-6 z-50 p-4 rounded-xl shadow-2xl flex items-center gap-2 text-white border text-sm transition-all transform animate-in slide-in-from-bottom-5 duration-300"
-         style={{ background: "linear-gradient(135deg, #6366f1, #4f46e5)", borderColor: "rgba(99,102,241,0.3)" }}>
-      <Check className="w-4 h-4" />
-      <span>{message}</span>
-      <button onClick={onClose} className="ml-2 hover:opacity-75"><X className="w-3.5 h-3.5" /></button>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT 1: APPLICATION MONITORING
-// ─────────────────────────────────────────────────────────────────────────────
-export function ManagerApplications() {
+export function ManagerActivity() {
+  const [selectedEmp, setSelectedEmp] = useState<EmployeeActivity | null>(null);
   const [search, setSearch] = useState("");
-  const [employeeFilter, setEmployeeFilter] = useState("all");
-  const [deptFilter, setDeptFilter] = useState("all");
-  const [dateRange, setDateRange] = useState("Today");
-  
-  const [expandedId, setExpandedId] = useState<number | null>(1); // Sarah open by default
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [selectedDetails, setSelectedDetails] = useState<AppUsage | null>(null);
 
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-  };
+  const filtered = activityEmployees.filter(e =>
+    e.name.toLowerCase().includes(search.toLowerCase()) ||
+    e.dept.toLowerCase().includes(search.toLowerCase())
+  );
 
-  // Filter usages based on inputs
-  const filteredUsages = mockAppUsages.filter(app => {
-    const matchesSearch = app.employeeName.toLowerCase().includes(search.toLowerCase());
-    const matchesEmployee = employeeFilter === "all" || app.employeeName === employeeFilter;
-    const matchesDept = deptFilter === "all" || app.department === deptFilter;
-    return matchesSearch && matchesEmployee && matchesDept;
-  });
-
-  // Calculate dynamic stats
-  let totalAppsUsed = 0;
-  let productiveMs = 0;
-  let nonProductiveMs = 0;
-
-  filteredUsages.forEach(item => {
-    // Collect unique apps count in employee breakdown
-    item.appDetails.forEach(detail => {
-      const isProductive = !["Spotify", "YouTube", "Facebook", "Netflix", "Discord"].includes(detail.name);
-      if (isProductive) {
-        productiveMs += detail.durationMs;
-      } else {
-        nonProductiveMs += detail.durationMs;
-      }
-    });
-  });
-
-  // Unique apps total across selected dataset
-  const uniqueApps = new Set<string>();
-  filteredUsages.forEach(item => item.appDetails.forEach(d => uniqueApps.add(d.name)));
-  totalAppsUsed = uniqueApps.size;
-
-  const totalTimeMs = productiveMs + nonProductiveMs;
-  const productivityPercentage = totalTimeMs > 0 ? ((productiveMs / totalTimeMs) * 100).toFixed(1) : "0.0";
-
-  // Recharts Chart Data Calculations
-  // 1. Top Apps Chart Data
-  const appDurationsMap: Record<string, number> = {};
-  filteredUsages.forEach(item => {
-    item.appDetails.forEach(d => {
-      appDurationsMap[d.name] = (appDurationsMap[d.name] || 0) + d.durationMs;
-    });
-  });
-  const topAppsData = Object.entries(appDurationsMap)
-    .map(([name, ms]) => ({ name, Hours: parseFloat((ms / 3600000).toFixed(1)) }))
-    .sort((a, b) => b.Hours - a.Hours);
-
-  // 2. Productive vs Non-Productive Pie Chart
-  const pieData = [
-    { name: "Productive", value: parseFloat((productiveMs / 3600000).toFixed(1)), color: "#10b981" },
-    { name: "Non-Productive", value: parseFloat((nonProductiveMs / 3600000).toFixed(1)), color: "#ef4444" },
-  ];
-
-  // 3. Employee-wise Chart Data
-  const employeeUsageData = filteredUsages.map(item => {
-    let pMs = 0;
-    let npMs = 0;
-    item.appDetails.forEach(d => {
-      const isProductive = !["Spotify", "YouTube", "Facebook", "Netflix", "Discord"].includes(d.name);
-      if (isProductive) pMs += d.durationMs;
-      else npMs += d.durationMs;
-    });
-    return {
-      name: item.employeeName.split(" ")[0], // Use first name
-      Productive: parseFloat((pMs / 3600000).toFixed(1)),
-      "Non-Productive": parseFloat((npMs / 3600000).toFixed(1)),
-    };
-  });
-
-  return (
-    <div className="p-6 space-y-6 overflow-y-auto h-full text-foreground" style={{ background: "var(--background)" }}>
-      
-      {/* ─── Top Filter Panel ─── */}
-      <div className="glass-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 border" style={{ borderColor: "var(--border)" }}>
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          {/* Search Bar */}
-          <div className="relative flex-1 sm:flex-initial">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search Employee..."
-              className="pl-9 pr-4 py-2 rounded-xl outline-none text-xs w-full sm:w-44"
-              style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-            />
+  // Render State 2: Detailed Activity Monitor (Matching figma image layout exactly)
+  if (selectedEmp) {
+    return (
+      <div className="p-6 space-y-6 overflow-y-auto h-full text-foreground" style={{ background: "var(--background)" }}>
+        {/* Header Section */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <button
+                onClick={() => setSelectedEmp(null)}
+                className="p-1.5 rounded-xl hover:bg-muted text-muted-foreground transition-all flex items-center justify-center"
+                style={{ background: "var(--card)", border: "1px solid var(--border)" }}
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </button>
+              <h2 className="text-xl font-bold tracking-tight">Activity Monitor</h2>
+            </div>
+            <p className="text-xs text-muted-foreground ml-9">Wednesday, June 17, 2026</p>
           </div>
 
-          {/* Employee Dropdown */}
-          <select
-            value={employeeFilter}
-            onChange={e => setEmployeeFilter(e.target.value)}
-            className="py-2 px-3 rounded-xl outline-none text-xs"
-            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-          >
-            <option value="all">All Employees</option>
-            {mockAppUsages.map(e => (
-              <option key={e.id} value={e.employeeName}>{e.employeeName}</option>
-            ))}
-          </select>
-
-          {/* Department Dropdown */}
-          <select
-            value={deptFilter}
-            onChange={e => setDeptFilter(e.target.value)}
-            className="py-2 px-3 rounded-xl outline-none text-xs"
-            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-          >
-            <option value="all">All Departments</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Design">Design</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Sales">Sales</option>
-            <option value="HR">HR</option>
-          </select>
-
-          {/* Date Picker (Mock) */}
-          <div className="relative">
-            <select
-              value={dateRange}
-              onChange={e => setDateRange(e.target.value)}
-              className="py-2 pl-8 pr-3 rounded-xl outline-none text-xs cursor-pointer"
-              style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-            >
-              <option>Today</option>
-              <option>Yesterday</option>
-              <option>Last 7 Days</option>
-              <option>This Month</option>
-            </select>
-            <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+              <div className="w-6 h-6 rounded-lg gradient-primary flex items-center justify-center">
+                <span className="text-white text-[10px] font-bold">{selectedEmp.initials}</span>
+              </div>
+              <span className="text-xs font-semibold">{selectedEmp.name}</span>
+              <span className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: statusColors[selectedEmp.status].color }} />
+            </div>
           </div>
         </div>
 
-        {/* Global Export Buttons */}
-        <div className="flex gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => triggerToast("PDF exported successfully!")}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all hover:bg-muted"
-            style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-          >
-            <FileText className="w-3.5 h-3.5" /> Export PDF
-          </button>
-          <button
-            onClick={() => triggerToast("Excel exported successfully!")}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white gradient-primary transition-all hover:opacity-90"
-          >
-            <Download className="w-3.5 h-3.5" /> Export Excel
-          </button>
-        </div>
-      </div>
-
-      {/* ─── Summary Cards Grid ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Total Applications Used", value: totalAppsUsed, sub: "Across team", color: "#6366f1" },
-          { label: "Total Productive Time", value: formatMsToTime(productiveMs), sub: "Tracked hours", color: "#10b981" },
-          { label: "Total Non-Productive Time", value: formatMsToTime(nonProductiveMs), sub: "Tracked leisure", color: "#ef4444" },
-          { label: "Productivity Percentage", value: `${productivityPercentage}%`, sub: "Avg score", color: "#818cf8" },
-        ].map((card, i) => (
-          <div key={i} className="rounded-2xl p-5 border hover:scale-[1.01] hover:shadow-lg transition-all"
-               style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-            <div style={{ fontSize: "1.75rem", fontWeight: 800, color: card.color, lineHeight: 1 }}>{card.value}</div>
-            <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--foreground)", marginTop: "6px" }}>{card.label}</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--muted-foreground)", marginTop: "2px" }}>{card.sub}</div>
+        {/* 3 Cards Metric Row */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Card 1: Keyboard Strokes */}
+          <div className="rounded-2xl p-5 border transition-all" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(99,102,241,0.1)" }}>
+                <Keyboard className="w-5 h-5 text-indigo-400" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-indigo-400 leading-none">{selectedEmp.keystrokes}</div>
+            <div className="text-xs text-muted-foreground mt-2 font-medium">Keyboard Strokes</div>
           </div>
-        ))}
-      </div>
 
-  
+          {/* Card 2: Mouse Clicks */}
+          <div className="rounded-2xl p-5 border transition-all" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(6,182,212,0.1)" }}>
+                <MousePointerClick className="w-5 h-5 text-cyan-400" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-cyan-400 leading-none">{selectedEmp.clicks}</div>
+            <div className="text-xs text-muted-foreground mt-2 font-medium">Mouse Clicks</div>
+          </div>
 
-      {/* ─── Usage Directory Table ─── */}
-      <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-        <div className="p-4" style={{ borderBottom: "1px solid var(--border)" }}>
-          <h3 className="font-bold text-sm">Application Usage Recordss</h3>
+          {/* Card 3: Active Time */}
+          <div className="rounded-2xl p-5 border transition-all" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            <div className="flex items-center justify-between mb-4">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "rgba(16,185,129,0.1)" }}>
+                <Clock className="w-5 h-5 text-emerald-400" />
+              </div>
+            </div>
+            <div className="text-2xl font-extrabold text-emerald-400 leading-none">{selectedEmp.activeTime}</div>
+            <div className="text-xs text-muted-foreground mt-2 font-medium">Active Time</div>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr style={{ background: "var(--muted)", borderBottom: "1px solid var(--border)" }}>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Employee Name</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Top Application</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Category</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Session Start</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Session End</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Duration</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Total Daily Usage</th>
-              </tr>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase text-right">Actions</th>
-                
-            </thead>
-            <tbody>
-              {filteredUsages.map(item => {
-                const isExpanded = expandedId === item.id;
-                const isProductive = !["Spotify", "YouTube", "Facebook", "Netflix", "Discord"].includes(item.appName);
 
+        {/* Hourly Activity Bar Chart */}
+        <div className="rounded-2xl p-5 border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+          <h3 className="font-semibold text-sm mb-4">Hourly Activity</h3>
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={selectedEmp.hourlyData}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="time" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
+              <Legend wrapperStyle={{ fontSize: "0.75rem" }} />
+              <Bar dataKey="keyboard" name="Keyboard" fill="#6366f1" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="mouse" name="Mouse" fill="#06b6d4" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Application Usage & Website Usage Side-by-Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Application Usage */}
+          <div className="rounded-2xl p-5 border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            <h3 className="font-semibold text-sm mb-4">Application Usage</h3>
+            <div className="space-y-4">
+              {selectedEmp.apps.map((app, idx) => {
+                const percent = (app.val / app.max) * 100;
                 return (
-                  <>
-                    <tr
-                      key={item.id}
-                      onClick={() => handleToggleExpand(item.id)}
-                      className="hover:opacity-95 border-b transition-all cursor-pointer"
-                      style={{ borderColor: "var(--border)" }}
-                    >
-                      <td className="px-5 py-4 font-semibold text-sm">{item.employeeName}</td>
-                      <td className="px-5 py-4 text-sm flex items-center gap-2">
-                        <Laptop className="w-4 h-4 text-muted-foreground" />
-                        {item.appName}
-                      </td>
-                      <td className="px-5 py-4">
-                        <span className="px-2.5 py-0.5 rounded text-[10px] font-bold"
-                              style={{
-                                background: isProductive ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
-                                color: isProductive ? "#10b981" : "#ef4444"
-                              }}>
-                          {isProductive ? "Productive" : "Non-Productive"}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-xs text-muted-foreground">{item.startTime}</td>
-                      <td className="px-5 py-4 text-xs text-muted-foreground">{item.endTime}</td>
-                      <td className="px-5 py-4 text-xs font-medium">{item.duration}</td>
-                      <td className="px-5 py-4 text-xs font-bold text-indigo-400">{item.totalUsageTime}</td>
-                      <td className="px-5 py-4 text-right" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedDetails(item)}
-                            className="p-1.5 rounded-lg hover:opacity-75 transition-opacity"
-                            style={{ background: "var(--muted)", color: "var(--foreground)" }}
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => triggerToast(`Report generated for ${item.employeeName}`)}
-                            className="p-1.5 rounded-lg hover:opacity-75 transition-opacity"
-                            style={{ background: "var(--muted)", color: "var(--foreground)" }}
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Expandable Employee Details Panel */}
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan={8} className="px-8 py-4 bg-muted/20" style={{ borderBottom: "1px solid var(--border)" }}>
-                          <div className="space-y-3 max-w-xl">
-                            <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-wide">
-                              Application Breakdown for {item.employeeName}
-                            </h4>
-                            <div className="space-y-2.5">
-                              {item.appDetails.map((detail, idx) => {
-                                const isProd = !["Spotify", "YouTube", "Facebook", "Netflix", "Discord"].includes(detail.name);
-                                // Percentage representation for progress bar
-                                const maxMs = Math.max(...item.appDetails.map(d => d.durationMs));
-                                const percent = (detail.durationMs / maxMs) * 100;
-                                
-                                return (
-                                  <div key={idx} className="flex items-center gap-4 text-xs">
-                                    <div className="w-20 font-semibold truncate">{detail.name}</div>
-                                    <div className="flex-1 h-2 rounded-full relative" style={{ background: "var(--muted)" }}>
-                                      <div className="h-full rounded-full transition-all"
-                                           style={{
-                                             width: `${percent}%`,
-                                             background: isProd ? "linear-gradient(90deg, #10b981, #34d399)" : "linear-gradient(90deg, #ef4444, #f87171)"
-                                           }}
-                                      />
-                                    </div>
-                                    <div className="w-16 text-right font-semibold text-muted-foreground">{detail.time}</div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
+                  <div key={idx} className="space-y-1.5">
+                    <div className="flex items-center justify-between text-xs font-semibold">
+                      <span className="text-foreground">{app.name}</span>
+                      <span className="text-indigo-400 font-bold">{app.duration}</span>
+                    </div>
+                    <div className="h-2 rounded-full w-full" style={{ background: "var(--muted)" }}>
+                      <div className="h-full rounded-full transition-all"
+                        style={{ width: `${percent}%`, background: app.color }} />
+                    </div>
+                  </div>
                 );
               })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ─── Insights Section ─── */}
-      <div className="glass-card rounded-2xl p-5 border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-        <h3 className="font-bold text-sm mb-4">Performance Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Most Used Application", val: "VS Code", sub: "16.5h cumulative time", desc: "Top workplace app", alert: false },
-            { label: "Least Used Application", val: "Spotify", sub: "30m tracking record", desc: "Minimal interference", alert: false },
-            { label: "Highest Productive Employee", val: "Sarah Johnson", sub: "97.0% productivity", desc: "Completed 11h tracking", alert: false },
-            { label: "Maximum Non-Productive App User", val: "Priya Patel", sub: "Netflix (1h 05m)", desc: "Exceeded idle threshold", alert: true },
-          ].map((insight, idx) => (
-            <div key={idx} className="p-4 rounded-xl border flex flex-col gap-1.5"
-                 style={{ background: "var(--muted)", borderColor: "var(--border)" }}>
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{insight.label}</span>
-              <div className="flex items-center gap-2">
-                {insight.alert && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                <span className="font-bold text-sm text-foreground">{insight.val}</span>
-              </div>
-              <span className="text-xs font-semibold text-indigo-400">{insight.sub}</span>
-              <span className="text-[11px] text-muted-foreground">{insight.desc}</span>
             </div>
-          ))}
-        </div>
-      </div>
+          </div>
 
-      {/* Toast Alert */}
-      <Toast show={showToast} message={toastMessage} onClose={() => setShowToast(false)} />
-
-      {/* Details Modal */}
-      {selectedDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setSelectedDetails(null)}>
-          <div className="rounded-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
-               style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 10px 40px -10px rgba(0,0,0,0.5)" }}
-               onClick={e => e.stopPropagation()}>
-            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
-              <h3 className="font-bold text-sm">Employee Application Summary</h3>
-              <button onClick={() => setSelectedDetails(null)} className="p-1 rounded-full hover:bg-muted text-muted-foreground"><X className="w-4 h-4" /></button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Employee</span>
-                <span className="text-xs font-bold">{selectedDetails.employeeName}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Department</span>
-                <span className="text-xs font-bold">{selectedDetails.department}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Primary App</span>
-                <span className="text-xs font-bold">{selectedDetails.appName}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Total Time Tracked</span>
-                <span className="text-xs font-bold text-green-500">{selectedDetails.totalUsageTime}</span>
+          {/* Website Usage */}
+          <div className="rounded-2xl p-5 border flex flex-col justify-between" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+            <div>
+              <h3 className="font-semibold text-sm mb-4">Website Usage</h3>
+              <div className="space-y-4">
+                {selectedEmp.websites.map((web, idx) => {
+                  const percent = (web.val / web.max) * 100;
+                  return (
+                    <div key={idx} className="space-y-1.5">
+                      <div className="flex items-center justify-between text-xs font-semibold">
+                        <span className="text-indigo-300">{web.name}</span>
+                        <span className="text-cyan-400 font-bold">{web.duration}</span>
+                      </div>
+                      <div className="h-2 rounded-full w-full" style={{ background: "var(--muted)" }}>
+                        <div className="h-full rounded-full transition-all"
+                          style={{ width: `${percent}%`, background: web.color }} />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
-            <div className="p-5 flex gap-3 bg-muted/40" style={{ borderTop: "1px solid var(--border)" }}>
-              <button onClick={() => setSelectedDetails(null)} className="flex-1 py-2 rounded-xl text-xs font-semibold gradient-primary text-white">
-                Close
-              </button>
+
+            <div className="flex items-center justify-between pt-4 mt-4 text-xs border-t font-semibold" style={{ borderColor: "var(--border)" }}>
+              <span className="text-muted-foreground">Idle Time Today</span>
+              <span className="text-amber-500 text-sm font-bold">{selectedEmp.idleTime}</span>
             </div>
           </div>
         </div>
-      )}
-
-    </div>
-  );
-
-  function handleToggleExpand(id: number) {
-    setExpandedId(expandedId === id ? null : id);
+      </div>
+    );
   }
-}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// COMPONENT 2: WEBSITE MONITORING
-// ─────────────────────────────────────────────────────────────────────────────
-export function ManagerWebsites() {
-  const [search, setSearch] = useState("");
-  const [employeeFilter, setEmployeeFilter] = useState("all");
-  const [deptFilter, setDeptFilter] = useState("all");
-  const [dateRange, setDateRange] = useState("Today");
-
-  const [expandedId, setExpandedId] = useState<number | null>(1); // Sarah open by default
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
-  const [selectedDetails, setSelectedDetails] = useState<WebActivity | null>(null);
-
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-  };
-
-  // Filter activities based on inputs
-  const filteredActivities = mockWebActivities.filter(web => {
-    const matchesSearch = web.websiteName.toLowerCase().includes(search.toLowerCase());
-    const matchesEmployee = employeeFilter === "all" || web.employeeName === employeeFilter;
-    const matchesDept = deptFilter === "all" || web.department === deptFilter;
-    return matchesSearch && matchesEmployee && matchesDept;
-  });
-
-  // Calculate dynamic stats
-  let totalBrowsingMs = 0;
-  let productiveBrowsingMs = 0;
-  let nonProductiveBrowsingMs = 0;
-
-  filteredActivities.forEach(item => {
-    item.webDetails.forEach(detail => {
-      const isProductive = !["facebook.com", "twitter.com", "linkedin.com", "netflix.com", "reddit.com/r/reactjs", "pinterest.com"].includes(detail.url);
-      if (isProductive) {
-        productiveBrowsingMs += detail.durationMs;
-      } else {
-        nonProductiveBrowsingMs += detail.durationMs;
-      }
-    });
-  });
-
-  // Unique websites visited
-  const uniqueWebsites = new Set<string>();
-  filteredActivities.forEach(item => item.webDetails.forEach(d => uniqueWebsites.add(d.url.split("/")[0])));
-  const totalWebsitesVisited = uniqueWebsites.size;
-
-  totalBrowsingMs = productiveBrowsingMs + nonProductiveBrowsingMs;
-  
-  const productivePct = totalBrowsingMs > 0 ? Math.round((productiveBrowsingMs / totalBrowsingMs) * 100) : 0;
-  const nonProductivePct = totalBrowsingMs > 0 ? 100 - productivePct : 0;
-
-  // Recharts Chart Data Calculations
-  // 1. Top Websites Chart Data
-  const webDurationsMap: Record<string, number> = {};
-  filteredActivities.forEach(item => {
-    item.webDetails.forEach(d => {
-      const domain = d.url.split("/")[0];
-      webDurationsMap[domain] = (webDurationsMap[domain] || 0) + d.durationMs;
-    });
-  });
-  const topWebsitesData = Object.entries(webDurationsMap)
-    .map(([name, ms]) => ({ name, Hours: parseFloat((ms / 3600000).toFixed(1)) }))
-    .sort((a, b) => b.Hours - a.Hours);
-
-  // 2. Category Pie Chart Data
-  const categoryDurationsMap: Record<string, number> = {};
-  filteredActivities.forEach(item => {
-    categoryDurationsMap[item.category] = (categoryDurationsMap[item.category] || 0) + item.timeSpentMs;
-  });
-  const categoryColors: Record<string, string> = {
-    Development: "#3b82f6",
-    Research: "#10b981",
-    "Social Media": "#f59e0b",
-    Entertainment: "#ef4444",
-    News: "#8b5cf6"
-  };
-  const categoryData = Object.entries(categoryDurationsMap).map(([name, ms]) => ({
-    name,
-    value: parseFloat((ms / 3600000).toFixed(1)),
-    color: categoryColors[name] || "#6b7280"
-  }));
-
-  // 3. Employee-wise Chart Data
-  const employeeUsageData = filteredActivities.map(item => {
-    let pMs = 0;
-    let npMs = 0;
-    item.webDetails.forEach(d => {
-      const isProductive = !["facebook.com", "twitter.com", "linkedin.com", "netflix.com", "reddit.com/r/reactjs", "pinterest.com"].includes(d.url);
-      if (isProductive) pMs += d.durationMs;
-      else npMs += d.durationMs;
-    });
-    return {
-      name: item.employeeName.split(" ")[0],
-      Productive: parseFloat((pMs / 3600000).toFixed(1)),
-      "Non-Productive": parseFloat((npMs / 3600000).toFixed(1)),
-    };
-  });
-
+  // Render State 1: All Employees List
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full text-foreground" style={{ background: "var(--background)" }}>
+      {/* Top Filter and Search Bar */}
+      <div className="flex items-center justify-between flex-wrap gap-4 p-5 rounded-2xl border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+        <h3 className="font-bold text-base">Activity Directory</h3>
+        <div className="relative w-full sm:w-64">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            placeholder="Search employee or dept..."
+            className="pl-9 pr-4 py-2 rounded-xl outline-none text-xs w-full text-foreground"
+            style={{ background: "var(--input-background)", border: "1px solid var(--border)" }}
+          />
+        </div>
+      </div>
 
-      {/* ─── Top Filter Panel ─── */}
-      <div className="glass-card rounded-2xl p-5 flex flex-wrap items-center justify-between gap-4 border" style={{ borderColor: "var(--border)" }}>
-        <div className="flex flex-wrap items-center gap-3 w-full lg:w-auto">
-          {/* Search Bar */}
-          <div className="relative flex-1 sm:flex-initial">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-            <input
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              placeholder="Search Website..."
-              className="pl-9 pr-4 py-2 rounded-xl outline-none text-xs w-full sm:w-44"
-              style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-            />
-          </div>
-
-          {/* Employee Dropdown */}
-          <select
-            value={employeeFilter}
-            onChange={e => setEmployeeFilter(e.target.value)}
-            className="py-2 px-3 rounded-xl outline-none text-xs"
-            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-          >
-            <option value="all">All Employees</option>
-            {mockWebActivities.map(e => (
-              <option key={e.id} value={e.employeeName}>{e.employeeName}</option>
-            ))}
-          </select>
-
-          {/* Department Dropdown */}
-          <select
-            value={deptFilter}
-            onChange={e => setDeptFilter(e.target.value)}
-            className="py-2 px-3 rounded-xl outline-none text-xs"
-            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-          >
-            <option value="all">All Departments</option>
-            <option value="Engineering">Engineering</option>
-            <option value="Design">Design</option>
-            <option value="Marketing">Marketing</option>
-            <option value="Sales">Sales</option>
-            <option value="HR">HR</option>
-          </select>
-
-          {/* Date Picker (Mock) */}
-          <div className="relative">
-            <select
-              value={dateRange}
-              onChange={e => setDateRange(e.target.value)}
-              className="py-2 pl-8 pr-3 rounded-xl outline-none text-xs cursor-pointer"
-              style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
+      {/* Directory Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+        {filtered.map(emp => {
+          const sc = statusColors[emp.status] || { color: "#6b7280", bg: "rgba(0,0,0,0.05)" };
+          return (
+            <div
+              key={emp.id}
+              onClick={() => setSelectedEmp(emp)}
+              className="rounded-2xl p-5 border cursor-pointer hover:scale-[1.02] hover:shadow-lg transition-all flex flex-col justify-between"
+              style={{ background: "var(--card)", borderColor: "var(--border)" }}
             >
-              <option>Today</option>
-              <option>Yesterday</option>
-              <option>Last 7 Days</option>
-              <option>This Month</option>
-            </select>
-            <Calendar className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground pointer-events-none" />
-          </div>
-        </div>
+              <div>
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center relative">
+                      <span className="text-white font-bold text-xs">{emp.initials}</span>
+                      <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2"
+                        style={{ background: sc.color, borderColor: "var(--card)" }} />
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-sm">{emp.name}</h4>
+                      <p className="text-[10px] text-muted-foreground">{emp.dept}</p>
+                    </div>
+                  </div>
+                  <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg capitalize font-bold text-[10px]"
+                    style={{ background: sc.bg, color: sc.color }}>
+                    {emp.status}
+                  </span>
+                </div>
 
-        {/* Global Export Buttons */}
-        <div className="flex gap-2 w-full sm:w-auto">
-          <button
-            onClick={() => triggerToast("PDF exported successfully!")}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all hover:bg-muted"
-            style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-          >
-            <FileText className="w-3.5 h-3.5" /> Export PDF
-          </button>
-          <button
-            onClick={() => triggerToast("Excel exported successfully!")}
-            className="flex-1 sm:flex-initial flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold text-white gradient-primary transition-all hover:opacity-90"
-          >
-            <Download className="w-3.5 h-3.5" /> Export Excel
-          </button>
-        </div>
-      </div>
-
-      {/* ─── Summary Cards Grid ─── */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Total Websites Visited", value: totalWebsitesVisited, sub: "Across team", color: "#6366f1" },
-          { label: "Total Browsing Time", value: formatMsToTime(totalBrowsingMs), sub: "Tracked hours", color: "#818cf8" },
-          { label: "Productive Websites %", value: `${productivePct}%`, sub: "Work related", color: "#10b981" },
-          { label: "Non-Productive Websites %", value: `${nonProductivePct}%`, sub: "Non-work related", color: "#ef4444" },
-        ].map((card, i) => (
-          <div key={i} className="rounded-2xl p-5 border hover:scale-[1.01] hover:shadow-lg transition-all"
-               style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-            <div style={{ fontSize: "1.75rem", fontWeight: 800, color: card.color, lineHeight: 1 }}>{card.value}</div>
-            <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--foreground)", marginTop: "6px" }}>{card.label}</div>
-            <div style={{ fontSize: "0.7rem", color: "var(--muted-foreground)", marginTop: "2px" }}>{card.sub}</div>
-          </div>
-        ))}
-      </div>
-
-
-      {/* ─── Website Activity Table ─── */}
-      <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-        <div className="p-4" style={{ borderBottom: "1px solid var(--border)" }}>
-          <h3 className="font-bold text-sm">Website Activity Log</h3>
-        </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left">
-            <thead>
-              <tr style={{ background: "var(--muted)", borderBottom: "1px solid var(--border)" }}>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Employee Name</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Website Domain</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Category</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Visits</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Time Spent</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Status</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredActivities.map(item => {
-                const isExpanded = expandedId === item.id;
-                const isProductive = item.status === "Productive";
-
-                return (
-                  <>
-                    <tr
-                      key={item.id}
-                      onClick={() => handleToggleExpand(item.id)}
-                      className="hover:opacity-95 border-b transition-all cursor-pointer"
-                      style={{ borderColor: "var(--border)" }}
-                    >
-                      <td className="px-5 py-4 font-semibold text-sm">{item.employeeName}</td>
-                      <td className="px-5 py-4 text-sm flex items-center gap-2">
-                        <Globe className="w-4 h-4 text-muted-foreground" />
-                        {item.websiteName}
-                      </td>
-                      <td className="px-5 py-4 text-xs font-medium text-indigo-300">{item.category}</td>
-                      <td className="px-5 py-4 text-xs font-semibold">{item.visits} times</td>
-                      <td className="px-5 py-4 text-xs font-bold text-indigo-400">{item.timeSpent}</td>
-                      <td className="px-5 py-4">
-                        <span className="px-2.5 py-0.5 rounded text-[10px] font-bold"
-                              style={{
-                                background: isProductive ? "rgba(16,185,129,0.15)" : "rgba(239,68,68,0.15)",
-                                color: isProductive ? "#10b981" : "#ef4444"
-                              }}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td className="px-5 py-4 text-right" onClick={e => e.stopPropagation()}>
-                        <div className="flex justify-end gap-2">
-                          <button
-                            onClick={() => setSelectedDetails(item)}
-                            className="p-1.5 rounded-lg hover:opacity-75 transition-opacity"
-                            style={{ background: "var(--muted)", color: "var(--foreground)" }}
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                          </button>
-                          <button
-                            onClick={() => triggerToast(`Report generated for ${item.employeeName}`)}
-                            className="p-1.5 rounded-lg hover:opacity-75 transition-opacity"
-                            style={{ background: "var(--muted)", color: "var(--foreground)" }}
-                          >
-                            <FileText className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-
-                    {/* Expandable Rows Details */}
-                    {isExpanded && (
-                      <tr>
-                        <td colSpan={7} className="px-8 py-4 bg-muted/20" style={{ borderBottom: "1px solid var(--border)" }}>
-                          <div className="space-y-3 max-w-xl">
-                            <h4 className="text-xs font-bold uppercase text-muted-foreground tracking-wide">
-                              Browsing Breakdown for {item.employeeName}
-                            </h4>
-                            <div className="space-y-2.5">
-                              {item.webDetails.map((detail, idx) => {
-                                const isProd = !["facebook.com", "twitter.com", "linkedin.com", "netflix.com", "reddit.com/r/reactjs", "pinterest.com"].includes(detail.url);
-                                const maxMs = Math.max(...item.webDetails.map(d => d.durationMs));
-                                const percent = (detail.durationMs / maxMs) * 100;
-                                
-                                return (
-                                  <div key={idx} className="flex items-center gap-4 text-xs">
-                                    <div className="w-32 font-semibold truncate text-indigo-300">{detail.url}</div>
-                                    <div className="flex-1 h-2 rounded-full relative" style={{ background: "var(--muted)" }}>
-                                      <div className="h-full rounded-full transition-all"
-                                           style={{
-                                             width: `${percent}%`,
-                                             background: isProd ? "linear-gradient(90deg, #10b981, #34d399)" : "linear-gradient(90deg, #ef4444, #f87171)"
-                                           }}
-                                      />
-                                    </div>
-                                    <div className="w-16 text-right font-semibold text-muted-foreground">{detail.time}</div>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* ─── Insights Section ─── */}
-      <div className="glass-card rounded-2xl p-5 border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-        <h3 className="font-bold text-sm mb-4">Web Activity Insights</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {[
-            { label: "Most Visited Website", val: "github.com", sub: "35h aggregate visits", desc: "Primary resource domain", alert: false },
-            { label: "Least Visited Website", val: "twitter.com", sub: "15m single log", desc: "Controlled social query", alert: false },
-            { label: "Highest Productive Employee", val: "Sarah Johnson", sub: "98.2% web focus", desc: "Github + Docs focus", alert: false },
-            { label: "Maximum Social Media User", val: "Emma Wilson", sub: "Facebook/Twitter (1h 10m)", desc: "Exceeded company limits", alert: true },
-          ].map((insight, idx) => (
-            <div key={idx} className="p-4 rounded-xl border flex flex-col gap-1.5"
-                 style={{ background: "var(--muted)", borderColor: "var(--border)" }}>
-              <span className="text-[10px] text-muted-foreground font-bold uppercase tracking-wider">{insight.label}</span>
-              <div className="flex items-center gap-2">
-                {insight.alert && <AlertTriangle className="w-4 h-4 text-red-500" />}
-                <span className="font-bold text-sm text-foreground">{insight.val}</span>
+                <div className="py-3 border-t border-b text-center" style={{ borderColor: "var(--border)" }}>
+                  <div>
+                    <span className="text-[10px] text-muted-foreground block uppercase font-medium">Activity Time</span>
+                    <span className="text-xs font-bold text-emerald-400">{emp.activeTime}</span>
+                  </div>
+                </div>
               </div>
-              <span className="text-xs font-semibold text-indigo-400">{insight.sub}</span>
-              <span className="text-[11px] text-muted-foreground">{insight.desc}</span>
-            </div>
-          ))}
-        </div>
-      </div>
 
-      {/* Toast Alert */}
-      <Toast show={showToast} message={toastMessage} onClose={() => setShowToast(false)} />
-
-      {/* Details Modal */}
-      {selectedDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60" onClick={() => setSelectedDetails(null)}>
-          <div className="rounded-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200"
-               style={{ background: "var(--card)", border: "1px solid var(--border)", boxShadow: "0 10px 40px -10px rgba(0,0,0,0.5)" }}
-               onClick={e => e.stopPropagation()}>
-            <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
-              <h3 className="font-bold text-sm">Employee Web Usage Summary</h3>
-              <button onClick={() => setSelectedDetails(null)} className="p-1 rounded-full hover:bg-muted text-muted-foreground"><X className="w-4 h-4" /></button>
-            </div>
-            <div className="p-5 space-y-4">
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Employee</span>
-                <span className="text-xs font-bold">{selectedDetails.employeeName}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Department</span>
-                <span className="text-xs font-bold">{selectedDetails.department}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Category</span>
-                <span className="text-xs font-bold text-indigo-400">{selectedDetails.category}</span>
-              </div>
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Total Visits</span>
-                <span className="text-xs font-bold">{selectedDetails.visits} times</span>
-              </div>
-              <div className="flex justify-between border-b pb-2" style={{ borderColor: "var(--border)" }}>
-                <span className="text-xs text-muted-foreground">Time Spent</span>
-                <span className="text-xs font-bold text-green-500">{selectedDetails.timeSpent}</span>
-              </div>
-            </div>
-            <div className="p-5 flex gap-3 bg-muted/40" style={{ borderTop: "1px solid var(--border)" }}>
-              <button onClick={() => setSelectedDetails(null)} className="flex-1 py-2 rounded-xl text-xs font-semibold gradient-primary text-white">
-                Close
+              <button
+                className="mt-4 flex items-center justify-center gap-1.5 py-2 w-full rounded-xl text-xs font-bold text-white gradient-primary hover:opacity-90 transition-all"
+              >
+                <Eye className="w-3.5 h-3.5" /> View Activity Detail
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
+          );
+        })}
+      </div>
     </div>
   );
-
-  function handleToggleExpand(id: number) {
-    setExpandedId(expandedId === id ? null : id);
-  }
 }

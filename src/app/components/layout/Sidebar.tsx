@@ -21,10 +21,9 @@ const managerNav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "employees", label: "Employees", icon: Users },
   { id: "attendance", label: "Attendance", icon: Clock },
+  { id: "activity", label: "Activity", icon: Activity },
   { id: "screenshots", label: "Screenshots", icon: Camera },
   { id: "recordings", label: "Recordings", icon: Video },
-  { id: "applications", label: "Application Monitoring", icon: Laptop },
-  { id: "websites", label: "Website Monitoring", icon: Globe },
   { id: "reports", label: "Reports", icon: FileText },
   { id: "settings", label: "Settings", icon: Settings },
 ];

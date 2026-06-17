@@ -111,7 +111,7 @@ export function ManagerDashboard() {
         <div className="lg:col-span-2 rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
-              <h3 style={{ fontWeight: 600 }}>Notifications Center</h3>
+              <h3 style={{ fontWeight: 600 }}>Recent Activity</h3>
               {unreadCount > 0 && (
                 <span className="px-1.5 py-0.5 rounded text-white text-[0.65rem] font-bold" style={{ background: "var(--primary)" }}>
                   {unreadCount} UNREAD
