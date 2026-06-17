@@ -8,6 +8,7 @@ interface TopBarProps {
   pageTitle: string;
   onLogout: () => void;
   onToggleMobileMenu?: () => void;
+  userPhoto?: string;
 }
 
 const notifications = [
@@ -18,7 +19,7 @@ const notifications = [
   { id: 5, type: "alert", text: "Sarah Johnson marked as late", time: "2h ago", read: true },
 ];
 
-export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onToggleMobileMenu }: TopBarProps) {
+export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onToggleMobileMenu, userPhoto }: TopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchVal, setSearchVal] = useState("");
@@ -55,7 +56,7 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
         >
           <Menu className="w-5 h-5" />
         </button>
-        <div>
+        z        <div>
           <h2 style={{ fontWeight: 700, lineHeight: 1, fontSize: "1.1rem" }}>{pageTitles[pageTitle] || pageTitle}</h2>
           <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "2px" }}>
             {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
@@ -147,11 +148,15 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
             className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all hover:opacity-80"
             style={{ background: "var(--muted)" }}
           >
-            <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center">
-              <span className="text-white" style={{ fontSize: "0.7rem", fontWeight: 700 }}>
-                {role === "admin" ? "SA" : role === "manager" ? "AM" : "JD"}
-              </span>
-            </div>
+            {role === "employee" && userPhoto ? (
+              <img src={userPhoto} alt="John Doe" className="w-7 h-7 rounded-full object-cover" />
+            ) : (
+              <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center">
+                <span className="text-white" style={{ fontSize: "0.7rem", fontWeight: 700 }}>
+                  {role === "admin" ? "SA" : role === "manager" ? "AM" : "JD"}
+                </span>
+              </div>
+            )}
             <div className="hidden md:block text-left">
               <div style={{ fontSize: "0.8rem", fontWeight: 600 }}>{role === "admin" ? "Super Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}</div>
               <div style={{ fontSize: "0.7rem", color: "var(--muted-foreground)", textTransform: "capitalize" }}>{role}</div>

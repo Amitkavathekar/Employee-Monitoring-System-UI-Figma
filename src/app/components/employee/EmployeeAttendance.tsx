@@ -32,8 +32,27 @@ const statusConfig: Record<string, { color: string; bg: string; label: string; i
 export function EmployeeAttendance() {
   const [filter, setFilter] = useState("all");
   const [search, setSearch] = useState("");
+  const [timeRange, setTimeRange] = useState<"all" | "1week" | "1month">("all");
 
-  const filtered = attendanceHistory.filter(r => filter === "all" || r.status === filter);
+  const filtered = attendanceHistory.filter(r => {
+    const matchesStatus = filter === "all" || r.status === filter;
+    
+    const term = search.toLowerCase();
+    const matchesSearch = search === "" || 
+      r.date.includes(term) || 
+      r.status.toLowerCase().includes(term);
+
+    if (!matchesStatus || !matchesSearch) return false;
+
+    if (timeRange === "1week") {
+      // Latest date in mock data is 2026-06-13, 7 days back is 2026-06-07
+      return r.date >= "2026-06-07";
+    } else if (timeRange === "1month") {
+      // 30 days back from 2026-06-13 is 2026-05-14
+      return r.date >= "2026-05-14";
+    }
+    return true;
+  });
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -90,6 +109,16 @@ export function EmployeeAttendance() {
                 style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.8rem", width: "160px" }}
               />
             </div>
+            <select
+              value={timeRange}
+              onChange={e => setTimeRange(e.target.value as any)}
+              className="py-2 px-3 rounded-xl outline-none"
+              style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.8rem" }}
+            >
+              <option value="all">All Time</option>
+              <option value="1week">1 Week</option>
+              <option value="1month">1 Month</option>
+            </select>
             <select
               value={filter}
               onChange={e => setFilter(e.target.value)}

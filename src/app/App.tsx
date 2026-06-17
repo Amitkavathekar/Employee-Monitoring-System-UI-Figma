@@ -73,6 +73,14 @@ export default function App() {
   const [activePage, setActivePage] = useState("dashboard");
   const [isDark, setIsDark] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [userPhoto, setUserPhoto] = useState<string>(() => {
+    return localStorage.getItem("employeePhoto") || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
+  });
+
+  const handlePhotoChange = (newPhoto: string) => {
+    setUserPhoto(newPhoto);
+    localStorage.setItem("employeePhoto", newPhoto);
+  };
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", isDark);
@@ -116,6 +124,7 @@ export default function App() {
           onNavigate={handleNavigate}
           onLogout={handleLogout}
           isDark={isDark}
+          userPhoto={role === "employee" ? userPhoto : undefined}
         />
       </div>
 
@@ -129,6 +138,7 @@ export default function App() {
               onNavigate={(page) => { handleNavigate(page); setMobileMenuOpen(false); }}
               onLogout={() => { handleLogout(); setMobileMenuOpen(false); }}
               isDark={isDark}
+              userPhoto={role === "employee" ? userPhoto : undefined}
             />
           </div>
         </div>
@@ -143,9 +153,14 @@ export default function App() {
           pageTitle={activePage}
           onLogout={handleLogout}
           onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
+          userPhoto={role === "employee" ? userPhoto : undefined}
         />
         <main className="flex-1 overflow-hidden" style={{ background: "var(--background)" }}>
-          <PageComponent activePage={activePage} />
+          <PageComponent 
+            activePage={activePage} 
+            userPhoto={role === "employee" ? userPhoto : undefined}
+            onPhotoChange={role === "employee" ? handlePhotoChange : undefined}
+          />
         </main>
       </div>
     </div>

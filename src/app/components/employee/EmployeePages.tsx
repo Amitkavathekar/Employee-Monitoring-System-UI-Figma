@@ -188,73 +188,42 @@ export function EmployeeProductivity() {
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Weekly Tasks Completion Bar Chart */}
-        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)", height: "380px" }}>
           <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Weekly Task Completion</h3>
-          <ResponsiveContainer width="100%" height={230}>
-            <BarChart data={prodData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="week" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-              <Bar dataKey="tasks" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="flex-1 min-h-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={prodData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="week" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
+                <Bar dataKey="tasks" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Manager Assigned Tasks */}
-        <div className="lg:col-span-2 rounded-2xl p-5 overflow-hidden flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Manager Assigned Tasks</h3>
-          <div className="overflow-x-auto flex-1">
-            <table className="w-full text-left">
-              <thead>
-                <tr style={{ background: "var(--muted)" }}>
-                  {["Task Name", "Priority", "Deadline", "Progress", "Status"].map(h => (
-                    <th key={h} className="px-4 py-2 text-left" style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", fontWeight: 600, textTransform: "uppercase" }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {[
-                  { id: 1, name: "Integrate Redux for Leave state", priority: "High", deadline: "June 20, 2026", progress: 65, status: "In Progress" },
-                  { id: 2, name: "Implement Auth Register Screens", priority: "High", deadline: "June 22, 2026", progress: 100, status: "Completed" },
-                  { id: 3, name: "Optimize Database Queries", priority: "Medium", deadline: "June 25, 2026", progress: 0, status: "Pending" },
-                  { id: 4, name: "Write API Documentation", priority: "Low", deadline: "June 30, 2026", progress: 0, status: "Pending" },
-                ].map((task) => (
-                  <tr key={task.id} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td className="px-4 py-3" style={{ fontSize: "0.85rem", fontWeight: 600 }}>{task.name}</td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded text-[0.7rem] font-bold"
-                        style={{
-                          background: task.priority === "High" ? "rgba(239,68,68,0.15)" : task.priority === "Medium" ? "rgba(245,158,11,0.15)" : "rgba(6,182,212,0.15)",
-                          color: task.priority === "High" ? "#ef4444" : task.priority === "Medium" ? "#f59e0b" : "#06b6d4"
-                        }}>
-                        {task.priority}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{task.deadline}</td>
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <div className="h-1.5 w-16 rounded-full" style={{ background: "var(--muted)" }}>
-                          <div className="h-1.5 rounded-full transition-all" style={{ width: `${task.progress}%`, background: "var(--primary)" }} />
-                        </div>
-                        <span style={{ fontSize: "0.75rem" }}>{task.progress}%</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3">
-                      <span className="px-2 py-0.5 rounded text-[0.7rem] font-bold"
-                        style={{
-                          background: task.status === "Completed" ? "rgba(16,185,129,0.15)" : task.status === "In Progress" ? "rgba(99,102,241,0.15)" : "rgba(107,114,128,0.15)",
-                          color: task.status === "Completed" ? "#10b981" : task.status === "In Progress" ? "var(--primary)" : "#6b7280"
-                        }}>
-                        {task.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+        {/* Productivity Trend Graph */}
+        <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)", height: "380px" }}>
+          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Productivity Trend</h3>
+          <div className="flex-1 min-h-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={monthlyTrend}>
+                <defs>
+                  <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
+                    <stop offset="95%" stopColor="var(--primary)" stopOpacity={0.0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="month" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <YAxis domain={[70, 100]} tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
+                <Area type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" activeDot={{ r: 6 }} dot={{ r: 4, fill: "var(--primary)", stroke: "var(--card)", strokeWidth: 2 }} />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>
@@ -687,34 +656,105 @@ export function EmployeeNotifications() {
 
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
-export function EmployeeProfile({ activePage }: { activePage?: string }) {
+export function EmployeeProfile({
+  activePage,
+  userPhoto,
+  onPhotoChange
+}: {
+  activePage?: string;
+  userPhoto?: string;
+  onPhotoChange?: (photo: string) => void;
+}) {
   const [editing, setEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<"info" | "password" | "settings">(
-    activePage === "settings" ? "settings" : "info"
-  );
+  const [activeTab, setActiveTab] = useState<"info" | "password">("info");
 
-  useEffect(() => {
-    if (activePage === "settings") {
-      setActiveTab("settings");
-    } else if (activePage === "profile") {
-      setActiveTab("info");
-    }
-  }, [activePage]);
+  // State for Settings page
+  const [settingsState, setSettingsState] = useState([
+    { id: "email", label: "Email Notifications", desc: "Receive notifications via email", enabled: true },
+    { id: "break", label: "Break Reminders", desc: "Get reminded to take breaks", enabled: true },
+    { id: "screenshot", label: "Screenshot Alerts", desc: "Notify when screenshots are taken", enabled: false },
+    { id: "session", label: "Session Alerts", desc: "Get alerts for session events", enabled: true },
+  ]);
+
+  const toggleSetting = (id: string) => {
+    setSettingsState(prev => prev.map(s => s.id === id ? { ...s, enabled: !s.enabled } : s));
+  };
+
+  // Dedicated Settings View
+  if (activePage === "settings") {
+    return (
+      <div className="p-6 space-y-6 overflow-y-auto h-full max-w-2xl">
+        <h3 style={{ fontWeight: 600, fontSize: "1.2rem", marginBottom: "0.5rem" }}>Settings</h3>
+        <div className="rounded-2xl p-6 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          {settingsState.map(({ id, label, desc, enabled }) => (
+            <div key={id} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+              <div>
+                <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>{label}</div>
+                <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{desc}</div>
+              </div>
+              <div
+                onClick={() => toggleSetting(id)}
+                className="w-11 h-6 rounded-full cursor-pointer transition-all flex items-center p-0.5"
+                style={{ background: enabled ? "var(--primary)" : "var(--muted)" }}>
+                <div className="w-5 h-5 rounded-full bg-white transition-all" style={{ transform: enabled ? "translateX(20px)" : "translateX(0)" }} />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
       {/* Profile Header */}
       <div className="rounded-2xl p-6 flex flex-col md:flex-row items-center gap-6"
         style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-        <div className="relative">
-          <div className="w-24 h-24 rounded-2xl gradient-primary flex items-center justify-center glow-primary">
-            <span className="text-white" style={{ fontSize: "2rem", fontWeight: 700 }}>JD</span>
-          </div>
-          <button className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-white"
-            style={{ background: "var(--primary)", border: "2px solid var(--card)" }}>
-            <User className="w-4 h-4" />
-          </button>
+        
+        {/* Uploadable Profile Photo */}
+        <div className="relative group flex-shrink-0">
+          <input
+            type="file"
+            id="profile-photo-upload"
+            className="hidden"
+            accept="image/*"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file && onPhotoChange) {
+                const reader = new FileReader();
+                reader.onloadend = () => {
+                  onPhotoChange(reader.result as string);
+                };
+                reader.readAsDataURL(file);
+              }
+            }}
+          />
+          <label htmlFor="profile-photo-upload" className="cursor-pointer block relative">
+            {userPhoto ? (
+              <img
+                src={userPhoto}
+                alt="John Doe"
+                className="w-24 h-24 rounded-2xl object-cover glow-primary"
+                style={{ border: "2px solid var(--primary)" }}
+              />
+            ) : (
+              <div className="w-24 h-24 rounded-2xl gradient-primary flex items-center justify-center glow-primary">
+                <span className="text-white" style={{ fontSize: "2rem", fontWeight: 700 }}>JD</span>
+              </div>
+            )}
+            <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <Camera className="w-6 h-6 text-white" />
+            </div>
+          </label>
+          <label
+            htmlFor="profile-photo-upload"
+            className="absolute -bottom-2 -right-2 w-8 h-8 rounded-full flex items-center justify-center text-white cursor-pointer hover:scale-105 transition-transform"
+            style={{ background: "var(--primary)", border: "2px solid var(--card)" }}
+          >
+            <Camera className="w-4 h-4" />
+          </label>
         </div>
+
         <div className="flex-1 text-center md:text-left">
           <h2 style={{ fontWeight: 700 }}>John Doe</h2>
           <p style={{ color: "var(--muted-foreground)", fontSize: "0.9rem" }}>Software Engineer · Frontend Team</p>
@@ -732,13 +772,13 @@ export function EmployeeProfile({ activePage }: { activePage?: string }) {
         </button>
       </div>
 
-      {/* Tabs */}
+      {/* Tabs - Settings tab removed */}
       <div className="flex gap-2">
-        {(["info", "password", "settings"] as const).map(tab => (
+        {(["info", "password"] as const).map(tab => (
           <button key={tab} onClick={() => setActiveTab(tab)}
             className="px-4 py-2 rounded-xl capitalize transition-all"
             style={{ background: activeTab === tab ? "var(--primary)" : "var(--muted)", color: activeTab === tab ? "white" : "var(--muted-foreground)", fontWeight: activeTab === tab ? 600 : 400, fontSize: "0.875rem" }}>
-            {tab === "info" ? "Personal Info" : tab === "password" ? "Change Password" : "Settings"}
+            {tab === "info" ? "Personal Info" : "Change Password"}
           </button>
         ))}
       </div>
@@ -796,27 +836,6 @@ export function EmployeeProfile({ activePage }: { activePage?: string }) {
           <button className="w-full py-2.5 rounded-xl text-white gradient-primary font-medium transition-all hover:opacity-90">
             Update Password
           </button>
-        </div>
-      )}
-
-      {activeTab === "settings" && (
-        <div className="rounded-2xl p-6 space-y-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          {[
-            { label: "Email Notifications", desc: "Receive notifications via email", enabled: true },
-            { label: "Break Reminders", desc: "Get reminded to take breaks", enabled: true },
-            { label: "Screenshot Alerts", desc: "Notify when screenshots are taken", enabled: false },
-            { label: "Session Alerts", desc: "Get alerts for session events", enabled: true },
-          ].map(({ label, desc, enabled }) => (
-            <div key={label} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
-              <div>
-                <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>{label}</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{desc}</div>
-              </div>
-              <div className="w-11 h-6 rounded-full cursor-pointer transition-all" style={{ background: enabled ? "var(--primary)" : "var(--muted)", padding: "2px" }}>
-                <div className="w-5 h-5 rounded-full bg-white transition-all" style={{ transform: enabled ? "translateX(20px)" : "translateX(0)" }} />
-              </div>
-            </div>
-          ))}
         </div>
       )}
     </div>
