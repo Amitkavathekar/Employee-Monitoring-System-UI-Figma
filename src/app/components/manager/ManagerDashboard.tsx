@@ -106,22 +106,44 @@ export function ManagerDashboard() {
         <MetricCard label="Absent Today" value="4" sub="Down from 6 yesterday" icon={XCircle} color="#ef4444" trend={-33} />
       </div>
 
-      {/* Charts Row 1 */}
+      {/* Row 1: Notifications and Today's Attendance */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Weekly Attendance Analytics</h3>
-          <ResponsiveContainer width="100%" height={220}>
-            <BarChart data={weeklyAttendance}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-              <XAxis dataKey="day" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-              <Legend wrapperStyle={{ fontSize: "0.75rem" }} />
-              <Bar dataKey="present" name="Present" fill="#10b981" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="absent" name="Absent" fill="#ef4444" radius={[4, 4, 0, 0]} />
-              <Bar dataKey="late" name="Late" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="lg:col-span-2 rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <h3 style={{ fontWeight: 600 }}>Notifications Center</h3>
+              {unreadCount > 0 && (
+                <span className="px-1.5 py-0.5 rounded text-white text-[0.65rem] font-bold" style={{ background: "var(--primary)" }}>
+                  {unreadCount} UNREAD
+                </span>
+              )}
+            </div>
+            <button onClick={handleMarkAllRead}
+              style={{ color: "var(--primary)", fontSize: "0.75rem", fontWeight: 600 }} className="hover:underline">
+              Mark all read
+            </button>
+          </div>
+          <div className="space-y-3 overflow-y-auto pr-1 flex-1 max-h-[220px]">
+            {notifs.map((n) => (
+              <div key={n.id}
+                onClick={() => handleMarkRead(n.id)}
+                className="rounded-2xl p-4 flex gap-4 cursor-pointer transition-all hover:scale-[1.005]"
+                style={{ background: n.read ? "var(--muted)" : `${typeColors[n.type] || "#6366f1"}08`, border: `1px solid ${n.read ? "var(--border)" : (typeColors[n.type] || "#6366f1") + "25"}` }}>
+                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
+                  style={{ background: `${typeColors[n.type] || "#6366f1"}20` }}>
+                  <Bell className="w-5 h-5" style={{ color: typeColors[n.type] || "#6366f1" }} />
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between items-start mb-1">
+                    <span style={{ fontWeight: n.read ? 400 : 600, fontSize: "0.9rem", color: "var(--foreground)" }}>{n.title}</span>
+                    <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", flexShrink: 0, marginLeft: "1rem" }}>{n.time}</span>
+                  </div>
+                  <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>{n.message}</p>
+                </div>
+                {!n.read && <div className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ background: typeColors[n.type] || "#6366f1" }} />}
+              </div>
+            ))}
+          </div>
         </div>
 
         <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
@@ -145,45 +167,6 @@ export function ManagerDashboard() {
               </div>
             ))}
           </div>
-        </div>
-      </div>
-
-      {/* Notifications Section - Replacing Row 2 Charts */}
-      <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <h3 style={{ fontWeight: 600 }}>Notifications Center</h3>
-            {unreadCount > 0 && (
-              <span className="px-1.5 py-0.5 rounded text-white text-[0.65rem] font-bold" style={{ background: "var(--primary)" }}>
-                {unreadCount} UNREAD
-              </span>
-            )}
-          </div>
-          <button onClick={handleMarkAllRead}
-            style={{ color: "var(--primary)", fontSize: "0.75rem", fontWeight: 600 }} className="hover:underline">
-            Mark all read
-          </button>
-        </div>
-        <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1">
-          {notifs.map((n) => (
-            <div key={n.id}
-              onClick={() => handleMarkRead(n.id)}
-              className="rounded-2xl p-4 flex gap-4 cursor-pointer transition-all hover:scale-[1.005]"
-              style={{ background: n.read ? "var(--muted)" : `${typeColors[n.type] || "#6366f1"}08`, border: `1px solid ${n.read ? "var(--border)" : (typeColors[n.type] || "#6366f1") + "25"}` }}>
-              <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                style={{ background: `${typeColors[n.type] || "#6366f1"}20` }}>
-                <Bell className="w-5 h-5" style={{ color: typeColors[n.type] || "#6366f1" }} />
-              </div>
-              <div className="flex-1">
-                <div className="flex justify-between items-start mb-1">
-                  <span style={{ fontWeight: n.read ? 400 : 600, fontSize: "0.9rem", color: "var(--foreground)" }}>{n.title}</span>
-                  <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", flexShrink: 0, marginLeft: "1rem" }}>{n.time}</span>
-                </div>
-                <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>{n.message}</p>
-              </div>
-              {!n.read && <div className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ background: typeColors[n.type] || "#6366f1" }} />}
-            </div>
-          ))}
         </div>
       </div>
 

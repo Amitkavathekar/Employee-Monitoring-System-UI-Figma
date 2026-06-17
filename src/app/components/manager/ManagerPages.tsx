@@ -359,6 +359,24 @@ const statusColors2: Record<string, { color: string; bg: string }> = {
   leave: { color: "#6366f1", bg: "rgba(99,102,241,0.1)" },
 };
 
+const empProdData = [
+  { name: "Sarah J.", score: 97, tasks: 25, hours: 9.2 },
+  { name: "Mike C.", score: 95, tasks: 22, hours: 8.8 },
+  { name: "Emma W.", score: 93, tasks: 20, hours: 8.5 },
+  { name: "James L.", score: 92, tasks: 19, hours: 8.2 },
+  { name: "Priya P.", score: 90, tasks: 18, hours: 8.0 },
+  { name: "David K.", score: 88, tasks: 17, hours: 7.8 },
+  { name: "Lisa T.", score: 85, tasks: 16, hours: 7.5 },
+];
+
+const weeklyAttendance = [
+  { day: "Mon", present: 45, absent: 5, late: 3 },
+  { day: "Tue", present: 48, absent: 2, late: 2 },
+  { day: "Wed", present: 44, absent: 6, late: 3 },
+  { day: "Thu", present: 46, absent: 4, late: 2 },
+  { day: "Fri", present: 40, absent: 8, late: 4 },
+];
+
 const monthlyAttendance = [
   { month: "Jan", rate: 94 }, { month: "Feb", rate: 91 }, { month: "Mar", rate: 96 },
   { month: "Apr", rate: 92 }, { month: "May", rate: 95 }, { month: "Jun", rate: 89 },
@@ -366,42 +384,66 @@ const monthlyAttendance = [
 
 export function AttendanceManagement() {
   const [filter, setFilter] = useState("all");
+  const [timeRange, setTimeRange] = useState<"1m" | "6m" | "1y">("1m");
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        {[
-          { label: "Present", value: "46", color: "#10b981" },
-          { label: "Absent", value: "4", color: "#ef4444" },
-          { label: "Late", value: "3", color: "#f59e0b" },
-          { label: "Attendance Rate", value: "91%", color: "#6366f1" },
-        ].map(({ label, value, color }) => (
-          <div key={label} className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-            <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", marginBottom: "0.5rem" }}>{label}</div>
-            <div style={{ fontSize: "2rem", fontWeight: 800, color }}>{value}</div>
-          </div>
-        ))}
-      </div>
+      {/* Side-by-Side Trend Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Weekly Attendance Analytics */}
+        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Weekly Attendance Analytics</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <BarChart data={weeklyAttendance}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
+              <Legend wrapperStyle={{ fontSize: "0.75rem" }} />
+              <Bar dataKey="present" name="Present" fill="#10b981" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="absent" name="Absent" fill="#ef4444" radius={[4, 4, 0, 0]} />
+              <Bar dataKey="late" name="Late" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
 
-      {/* Trend Chart */}
-      <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-        <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Monthly Attendance Rate</h3>
-        <ResponsiveContainer width="100%" height={180}>
-          <LineChart data={monthlyAttendance}>
-            <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-            <XAxis dataKey="month" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[80, 100]} />
-            <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} formatter={(v: any) => [`${v}%`, "Rate"]} />
-            <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4, fill: "#10b981" }} />
-          </LineChart>
-        </ResponsiveContainer>
+        {/* Monthly Attendance Rate */}
+        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Monthly Attendance Rate</h3>
+          <ResponsiveContainer width="100%" height={200}>
+            <LineChart data={monthlyAttendance}>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="month" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[80, 100]} />
+              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} formatter={(v: any) => [`${v}%`, "Rate"]} />
+              <Line type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={2.5} dot={{ r: 4, fill: "#10b981" }} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
       </div>
 
       {/* Table */}
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="p-5 flex items-center justify-between flex-wrap gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <h3 style={{ fontWeight: 600 }}>Attendance Records — Jun 13, 2026</h3>
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center flex-wrap">
+            {/* Time range selector */}
+            <div className="flex rounded-xl overflow-hidden p-1 border border-border gap-1" style={{ background: "var(--input-background)" }}>
+              {(["1m", "6m", "1y"] as const).map((range) => (
+                <button
+                  key={range}
+                  onClick={() => setTimeRange(range)}
+                  className="px-3 py-1 rounded-lg text-xs font-semibold transition-all"
+                  style={{
+                    background: timeRange === range ? "var(--primary)" : "transparent",
+                    color: timeRange === range ? "white" : "var(--muted-foreground)",
+                  }}
+                >
+                  {range === "1m" ? "1 Month" : range === "6m" ? "6 Months" : "1 Year"}
+                </button>
+              ))}
+            </div>
+
             <select value={filter} onChange={e => setFilter(e.target.value)}
               className="py-2 px-3 rounded-xl outline-none"
               style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.8rem" }}>
@@ -410,6 +452,7 @@ export function AttendanceManagement() {
               <option value="absent">Absent</option>
               <option value="late">Late</option>
             </select>
+            
             <button className="flex items-center gap-2 px-3 py-2 rounded-xl text-white"
               style={{ background: "var(--primary)", fontSize: "0.8rem", fontWeight: 500 }}>
               <Download className="w-4 h-4" /> Export
@@ -453,21 +496,53 @@ export function AttendanceManagement() {
           </table>
         </div>
       </div>
+
+      {/* Employee Productivity Score and Performance Summary (Moved from Productivity page) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Employee Productivity Score</h3>
+          <ResponsiveContainer width="100%" height={230}>
+            <BarChart data={empProdData} layout="vertical">
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+              <XAxis type="number" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[0, 100]} />
+              <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} width={65} />
+              <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
+              <Bar dataKey="score" radius={[0, 4, 4, 0]}>
+                {empProdData.map((e, i) => <Cell key={i} fill={e.score >= 95 ? "#10b981" : e.score >= 90 ? "#6366f1" : "#f59e0b"} />)}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Performance Summary</h3>
+          <div className="space-y-3">
+            {empProdData.map(({ name, score, tasks }) => (
+              <div key={name} className="flex items-center gap-3 py-2" style={{ borderBottom: "1px solid var(--border)" }}>
+                <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
+                  <span className="text-white" style={{ fontSize: "0.6rem", fontWeight: 700 }}>{name.split(" ").map(n => n[0]).join("")}</span>
+                </div>
+                <div className="flex-1">
+                  <div className="flex justify-between mb-1">
+                    <span style={{ fontSize: "0.8rem", fontWeight: 500 }}>{name}</span>
+                    <span style={{ fontSize: "0.8rem", fontWeight: 700, color: score >= 95 ? "#10b981" : "var(--primary)" }}>{score}%</span>
+                  </div>
+                  <div className="h-1.5 rounded-full" style={{ background: "var(--muted)" }}>
+                    <div className="h-1.5 rounded-full" style={{ width: `${score}%`, background: score >= 95 ? "#10b981" : "var(--primary)" }} />
+                  </div>
+                </div>
+                <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{tasks}t</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
 
 // ─── Productivity Monitoring ──────────────────────────────────────────────────
 
-const empProdData = [
-  { name: "Sarah J.", score: 97, tasks: 25, hours: 9.2 },
-  { name: "Mike C.", score: 95, tasks: 22, hours: 8.8 },
-  { name: "Emma W.", score: 93, tasks: 20, hours: 8.5 },
-  { name: "James L.", score: 92, tasks: 19, hours: 8.2 },
-  { name: "Priya P.", score: 90, tasks: 18, hours: 8.0 },
-  { name: "David K.", score: 88, tasks: 17, hours: 7.8 },
-  { name: "Lisa T.", score: 85, tasks: 16, hours: 7.5 },
-];
 
 export function ProductivityMonitoring() {
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
@@ -552,6 +627,20 @@ const mgrScreenshots = Array.from({ length: 12 }, (_, i) => ({
 
 export function ScreenshotMonitoring() {
   const [preview, setPreview] = useState<number | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [timeFilter, setTimeFilter] = useState("1m");
+
+  const filteredScreenshots = mgrScreenshots.filter((ss) => {
+    const matchesSearch = ss.employee.toLowerCase().includes(searchTerm.toLowerCase());
+    if (timeFilter === "today") {
+      return matchesSearch && ss.id <= 4;
+    } else if (timeFilter === "1w") {
+      return matchesSearch && ss.id <= 8;
+    } else if (timeFilter === "2w") {
+      return matchesSearch && ss.id <= 10;
+    }
+    return matchesSearch; // "1m" (1 month) shows all
+  });
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -569,44 +658,70 @@ export function ScreenshotMonitoring() {
         ))}
       </div>
 
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-4">
         <h3 style={{ fontWeight: 600 }}>Recent Screenshots</h3>
-        <div className="flex gap-3">
-          <select className="py-2 px-3 rounded-xl outline-none"
-            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.8rem" }}>
-            <option>All Employees</option>
-          </select>
-          <select className="py-2 px-3 rounded-xl outline-none"
-            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.8rem" }}>
-            <option>Today</option>
+        <div className="flex gap-3 items-center flex-wrap">
+          {/* Employee name search input */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+            <input
+              type="text"
+              placeholder="Search employee name..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-9 pr-4 py-2 rounded-xl outline-none text-xs w-48 text-foreground"
+              style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
+            />
+          </div>
+
+          <select
+            value={timeFilter}
+            onChange={(e) => setTimeFilter(e.target.value)}
+            className="py-2 px-3 rounded-xl outline-none font-medium"
+            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.8rem" }}
+          >
+            <option value="today">Today</option>
+            <option value="1w">1 Week</option>
+            <option value="2w">2 Weeks</option>
+            <option value="1m">1 Month</option>
           </select>
         </div>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        {mgrScreenshots.map((ss) => (
-          <div key={ss.id} className="rounded-xl overflow-hidden cursor-pointer group transition-all hover:scale-[1.02]"
-            style={{ border: "1px solid var(--border)" }}
-            onClick={() => setPreview(ss.id)}>
-            <div className="h-28 relative flex items-center justify-center"
-              style={{ background: `linear-gradient(135deg, hsl(${ss.id * 25}, 40%, 25%) 0%, hsl(${ss.id * 40}, 50%, 18%) 100%)` }}>
-              <Camera style={{ width: 32, height: 32, color: "rgba(255,255,255,0.25)" }} />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                style={{ background: "rgba(0,0,0,0.4)" }}>
-                <Eye className="w-7 h-7 text-white" />
+      {filteredScreenshots.length === 0 ? (
+        <div className="flex flex-col items-center justify-center p-12 rounded-2xl text-center border border-dashed border-border" style={{ background: "var(--card)" }}>
+          <Camera className="w-12 h-12 text-muted-foreground opacity-50 mb-3" />
+          <h4 style={{ fontWeight: 600, fontSize: "0.95rem" }}>No Screenshots Found</h4>
+          <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", marginTop: "0.25rem" }}>
+            No screenshots match your search criteria. Try adjusting your filter terms.
+          </p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+          {filteredScreenshots.map((ss) => (
+            <div key={ss.id} className="rounded-xl overflow-hidden cursor-pointer group transition-all hover:scale-[1.02]"
+              style={{ border: "1px solid var(--border)" }}
+              onClick={() => setPreview(ss.id)}>
+              <div className="h-28 relative flex items-center justify-center"
+                style={{ background: `linear-gradient(135deg, hsl(${ss.id * 25}, 40%, 25%) 0%, hsl(${ss.id * 40}, 50%, 18%) 100%)` }}>
+                <Camera style={{ width: 32, height: 32, color: "rgba(255,255,255,0.25)" }} />
+                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  style={{ background: "rgba(0,0,0,0.4)" }}>
+                  <Eye className="w-7 h-7 text-white" />
+                </div>
+                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white"
+                  style={{ background: "rgba(0,0,0,0.6)", fontSize: "0.6rem" }}>
+                  {ss.employee.split(" ")[0]}
+                </div>
               </div>
-              <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white"
-                style={{ background: "rgba(0,0,0,0.6)", fontSize: "0.6rem" }}>
-                {ss.employee.split(" ")[0]}
+              <div className="px-3 py-2" style={{ background: "var(--card)" }}>
+                <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>{ss.time}</div>
+                <div style={{ fontSize: "0.65rem", color: "var(--muted-foreground)" }}>{ss.activity}% active</div>
               </div>
             </div>
-            <div className="px-3 py-2" style={{ background: "var(--card)" }}>
-              <div style={{ fontSize: "0.75rem", fontWeight: 600 }}>{ss.time}</div>
-              <div style={{ fontSize: "0.65rem", color: "var(--muted-foreground)" }}>{ss.activity}% active</div>
-            </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
 
       {preview !== null && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4"

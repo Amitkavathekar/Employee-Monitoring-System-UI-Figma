@@ -21,7 +21,6 @@ const managerNav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   { id: "employees", label: "Employees", icon: Users },
   { id: "attendance", label: "Attendance", icon: Clock },
-  { id: "productivity", label: "Productivity", icon: TrendingUp },
   { id: "screenshots", label: "Screenshots", icon: Camera },
   { id: "recordings", label: "Recordings", icon: Video },
   { id: "applications", label: "Application Monitoring", icon: Laptop },
