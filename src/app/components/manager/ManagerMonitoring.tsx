@@ -426,86 +426,12 @@ export function ManagerApplications() {
         ))}
       </div>
 
-      {/* ─── Recharts Graphical Panel ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Top Apps Bar Chart */}
-        <div className="glass-card rounded-2xl p-5 border flex flex-col" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-bold mb-4">Top Applications Used (Hours)</h3>
-          <div className="h-64 flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topAppsData} layout="vertical" margin={{ left: 10, right: 10, top: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={true} vertical={false} />
-                <XAxis type="number" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} />
-                <YAxis dataKey="name" type="category" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} width={65} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px" }}
-                  labelStyle={{ color: "var(--foreground)", fontWeight: 700 }}
-                />
-                <Bar dataKey="Hours" radius={[0, 4, 4, 0]}>
-                  {topAppsData.map((entry, idx) => (
-                    <Cell key={`cell-${idx}`} fill={idx % 2 === 0 ? "#6366f1" : "#818cf8"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Productive vs Non-Productive Pie Chart */}
-        <div className="glass-card rounded-2xl p-5 border flex flex-col" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-bold mb-4 font-semibold">Productive vs Non-Productive Share</h3>
-          <div className="h-64 flex-1 relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px" }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="absolute flex flex-col items-center justify-center text-center">
-              <span className="text-xl font-extrabold text-green-500">{productivityPercentage}%</span>
-              <span className="text-[10px] text-muted-foreground font-semibold">Productive</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Employee-wise Usage Chart */}
-        <div className="glass-card rounded-2xl p-5 border flex flex-col" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-bold mb-4">Employee Usage Breakdown (Hours)</h3>
-          <div className="h-64 flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={employeeUsageData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={10} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px" }} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
-                <Bar dataKey="Productive" stackId="a" fill="#10b981" />
-                <Bar dataKey="Non-Productive" stackId="a" fill="#ef4444" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+  
 
       {/* ─── Usage Directory Table ─── */}
       <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
         <div className="p-4" style={{ borderBottom: "1px solid var(--border)" }}>
-          <h3 className="font-bold text-sm">Application Usage Records</h3>
+          <h3 className="font-bold text-sm">Application Usage Recordss</h3>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left">
@@ -518,8 +444,9 @@ export function ManagerApplications() {
                 <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Session End</th>
                 <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Duration</th>
                 <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase">Total Daily Usage</th>
-                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase text-right">Actions</th>
               </tr>
+                <th className="px-5 py-3 text-xs font-semibold text-muted-foreground uppercase text-right">Actions</th>
+                
             </thead>
             <tbody>
               {filteredUsages.map(item => {
@@ -886,76 +813,6 @@ export function ManagerWebsites() {
         ))}
       </div>
 
-      {/* ─── Recharts Graphical Panel ─── */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Top Websites Bar Chart */}
-        <div className="glass-card rounded-2xl p-5 border flex flex-col" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-bold mb-4">Top Websites Visited (Hours)</h3>
-          <div className="h-64 flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={topWebsitesData} layout="vertical" margin={{ left: 15, right: 10, top: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" horizontal={true} vertical={false} />
-                <XAxis type="number" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} />
-                <YAxis dataKey="name" type="category" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} width={80} />
-                <Tooltip
-                  contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px" }}
-                />
-                <Bar dataKey="Hours" radius={[0, 4, 4, 0]}>
-                  {topWebsitesData.map((entry, idx) => (
-                    <Cell key={`cell-${idx}`} fill={idx % 2 === 0 ? "#6366f1" : "#818cf8"} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Category Share Pie Chart */}
-        <div className="glass-card rounded-2xl p-5 border flex flex-col" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-bold mb-4">Website Category Breakdown</h3>
-          <div className="h-64 flex-1 relative flex items-center justify-center">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  paddingAngle={4}
-                  dataKey="value"
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px" }}
-                />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: "10px" }} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {/* Employee Browsing Stacked Bar Chart */}
-        <div className="glass-card rounded-2xl p-5 border flex flex-col" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
-          <h3 className="text-sm font-bold mb-4">Employee Browsing Breakdown (Hours)</h3>
-          <div className="h-64 flex-1">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={employeeUsageData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
-                <XAxis dataKey="name" stroke="var(--muted-foreground)" fontSize={10} tickLine={false} />
-                <YAxis stroke="var(--muted-foreground)" fontSize={10} tickLine={false} />
-                <Tooltip contentStyle={{ backgroundColor: "var(--card)", border: "1px solid var(--border)", borderRadius: "8px" }} />
-                <Legend iconType="circle" wrapperStyle={{ fontSize: "11px" }} />
-                <Bar dataKey="Productive" stackId="a" fill="#10b981" />
-                <Bar dataKey="Non-Productive" stackId="a" fill="#ef4444" />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
 
       {/* ─── Website Activity Table ─── */}
       <div className="rounded-2xl border overflow-hidden" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
