@@ -24,6 +24,7 @@ import {
   Reports,
   NotificationsCenter,
   ManagerSettings,
+  ApprovalsPage,
 } from "./components/manager/ManagerPages";
 import { ManagerActivity } from "./components/manager/ManagerMonitoring";
 import { AdminDashboard } from "./components/admin/AdminDashboard";
@@ -49,10 +50,10 @@ const managerPages: Record<string, React.ComponentType> = {
   dashboard: ManagerDashboard,
   employees: EmployeeManagement,
   attendance: AttendanceManagement,
-  productivity: ProductivityMonitoring,
+  activity: ManagerActivity,
   screenshots: ScreenshotMonitoring,
   recordings: RecordingMonitoring,
-  activity: ManagerActivity,
+  approvals: ApprovalsPage,
   reports: Reports,
   settings: ManagerSettings,
 };
@@ -63,6 +64,7 @@ const adminPages: Record<string, React.ComponentType> = {
   policies: AdminPolicies,
   reports: AdminReports,
   analytics: AdminAnalytics,
+  approvals: ApprovalsPage,
   settings: ManagerSettings,
 };
 
@@ -157,6 +159,7 @@ export default function App() {
         <main className="flex-1 overflow-hidden" style={{ background: "var(--background)" }}>
           <PageComponent 
             activePage={activePage} 
+            role={role}
             userPhoto={role === "employee" ? userPhoto : undefined}
             onPhotoChange={role === "employee" ? handlePhotoChange : undefined}
           />

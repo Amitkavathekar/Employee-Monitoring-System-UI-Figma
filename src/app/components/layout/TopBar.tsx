@@ -66,23 +66,7 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
 
       {/* Right */}
       <div className="flex items-center gap-2">
-        {/* Search */}
-        <div className="relative hidden md:block">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
-          <input
-            value={searchVal}
-            onChange={e => setSearchVal(e.target.value)}
-            placeholder="Search..."
-            className="pl-9 pr-4 py-2 rounded-xl outline-none"
-            style={{
-              background: "var(--input-background)",
-              border: "1px solid var(--border)",
-              color: "var(--foreground)",
-              fontSize: "0.875rem",
-              width: "200px",
-            }}
-          />
-        </div>
+
 
         {/* Theme Toggle */}
         <button

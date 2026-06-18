@@ -4,7 +4,8 @@ import {
   XCircle, AlertCircle, Wifi, WifiOff, Clock, Download, Filter,
   Camera, Video, TrendingUp, FileText, Bell, Settings, Shield,
   Activity, Coffee, Eye, Play, Square, ChevronLeft, ChevronRight,
-  Award, BarChart2, Building, Calendar, Mail, Phone, User
+  Award, BarChart2, Building, Calendar, Mail, Phone, User,
+  CheckSquare, Check, X
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
@@ -1106,6 +1107,246 @@ export function ManagerSettings() {
           </div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ─── Approvals Page Component ──────────────────────────────────────────────────
+
+interface ApprovalRequest {
+  id: number;
+  name: string;
+  email: string;
+  dept: string;
+  role: string;
+  status: "APPROVED" | "PENDING" | "REJECTED";
+  date: string;
+  initials: string;
+}
+
+const initialEmployeeRequests: ApprovalRequest[] = [
+  { id: 1, name: "Radha P", email: "radhaP@gmail.com", dept: "IT", role: "Web developer", status: "APPROVED", date: "6/5/2026", initials: "RP" },
+  { id: 2, name: "Kishori T", email: "kishori@gmail.com", dept: "--", role: "full stack developer", status: "APPROVED", date: "5/24/2026", initials: "KT" },
+  { id: 3, name: "Raj Tipugade", email: "raj29@gmail.com", dept: "--", role: "Web developer", status: "APPROVED", date: "5/28/2026", initials: "RT" },
+  { id: 4, name: "Piyush K", email: "piyush@gmail.com", dept: "IT", role: "Developer", status: "APPROVED", date: "6/1/2026", initials: "PK" },
+  { id: 5, name: "Prathamesh Kamble", email: "prathameshdhk06@gmail.com", dept: "IT", role: "full stack dev", status: "PENDING", date: "5/26/2026", initials: "PK" },
+  { id: 6, name: "Jhon F", email: "jhon@gmail.com", dept: "--", role: "SDE-II", status: "REJECTED", date: "5/25/2026", initials: "JF" },
+];
+
+const initialAdminRequests: ApprovalRequest[] = [
+  { id: 1, name: "Alex Morgan", email: "alex@company.com", dept: "Operations", role: "Admin", status: "APPROVED", date: "6/10/2026", initials: "AM" },
+  { id: 2, name: "John Doe", email: "john@company.com", dept: "Engineering", role: "Tech Lead", status: "APPROVED", date: "6/12/2026", initials: "JD" },
+  { id: 3, name: "Samantha R", email: "samantha@company.com", dept: "Sales", role: "Sales Admin", status: "PENDING", date: "6/15/2026", initials: "SR" },
+  { id: 4, name: "Robert K", email: "robert@company.com", dept: "HR", role: "HR Admin", status: "REJECTED", date: "6/11/2026", initials: "RK" },
+];
+
+export function ApprovalsPage({ role }: { role?: string }) {
+  const isAdmin = role === "admin";
+  const [requests, setRequests] = useState<ApprovalRequest[]>(() => 
+    isAdmin ? initialEmployeeRequests : initialAdminRequests
+  );
+  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [selectedRequest, setSelectedRequest] = useState<ApprovalRequest | null>(null);
+
+  const handleStatusChange = (id: number, newStatus: "APPROVED" | "PENDING" | "REJECTED") => {
+    const updated = requests.map(r => r.id === id ? { ...r, status: newStatus } : r);
+    setRequests(updated);
+    if (selectedRequest && selectedRequest.id === id) {
+      setSelectedRequest({ ...selectedRequest, status: newStatus });
+    }
+  };
+
+  const handleDelete = (id: number) => {
+    setRequests(requests.filter(r => r.id !== id));
+    setSelectedRequest(null);
+  };
+
+  const filtered = requests.filter(r => {
+    if (filter === "all") return true;
+    return r.status.toLowerCase() === filter;
+  });
+
+  const totalCount = requests.length;
+  const pendingCount = requests.filter(r => r.status === "PENDING").length;
+  const approvedCount = requests.filter(r => r.status === "APPROVED").length;
+  const rejectedCount = requests.filter(r => r.status === "REJECTED").length;
+
+  return (
+    <div className="p-6 space-y-6 overflow-y-auto h-full text-foreground relative" style={{ background: "var(--background)" }}>
+      {/* Cards stats row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {[
+          { label: `Total ${isAdmin ? "Employees" : "Admins"}`, value: totalCount, sub: "Total Registered", color: "#6366f1", bg: "rgba(99,102,241,0.15)", icon: Users },
+          { label: `Pending ${isAdmin ? "Employees" : "Admins"}`, value: pendingCount, sub: "Review Required", color: "#f59e0b", bg: "rgba(245,158,11,0.15)", icon: Clock },
+          { label: `Approved ${isAdmin ? "Employees" : "Admins"}`, value: approvedCount, sub: "Access Granted", color: "#10b981", bg: "rgba(16,185,129,0.15)", icon: CheckCircle },
+          { label: `Rejected ${isAdmin ? "Employees" : "Admins"}`, value: rejectedCount, sub: "Access Denied", color: "#ef4444", bg: "rgba(239,68,68,0.15)", icon: XCircle },
+        ].map((c) => {
+          const Icon = c.icon;
+          return (
+            <div key={c.label} className="rounded-2xl p-5 border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+              <div className="flex items-center justify-between mb-2">
+                <span style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", fontWeight: 600 }}>{c.label}</span>
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: c.bg }}>
+                  <Icon className="w-4 h-4" style={{ color: c.color }} />
+                </div>
+              </div>
+              <div style={{ fontSize: "2rem", fontWeight: 800, color: c.color, lineHeight: 1.1 }}>{c.value}</div>
+              <div style={{ fontSize: "0.7rem", color: "var(--muted-foreground)", marginTop: "4px" }}>{c.sub}</div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Directory Table */}
+      <div className="rounded-2xl overflow-hidden border" style={{ background: "var(--card)", borderColor: "var(--border)" }}>
+        <div className="p-5 flex items-center justify-between flex-wrap gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
+          <div className="flex gap-2">
+            <button className="px-4 py-2 text-xs font-semibold rounded-xl text-white" style={{ background: "var(--primary)" }}>
+              {isAdmin ? "Employee Approval" : "Admin Approval"}
+            </button>
+          </div>
+
+          <select value={filter} onChange={e => setFilter(e.target.value as any)}
+            className="py-2 px-3 rounded-xl outline-none border border-border"
+            style={{ background: "var(--input-background)", color: "var(--foreground)", fontSize: "0.8rem" }}>
+            <option value="all">All</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+          </select>
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left">
+            <thead>
+              <tr style={{ background: "var(--muted)", borderBottom: "1px solid var(--border)" }}>
+                {[`${isAdmin ? "Employee" : "Admin"}`, "Department", "Role", "Status", "Actions"].map(h => (
+                  <th key={h} className="px-5 py-3 text-left" style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", fontWeight: 600, textTransform: "uppercase" }}>{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((row) => {
+                const statusColorsMap: Record<string, { color: string; bg: string }> = {
+                  APPROVED: { color: "#10b981", bg: "rgba(16,185,129,0.1)" },
+                  PENDING: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+                  REJECTED: { color: "#ef4444", bg: "rgba(239,68,68,0.1)" },
+                };
+                const sc = statusColorsMap[row.status] || { color: "#6b7280", bg: "rgba(0,0,0,0.05)" };
+                return (
+                  <tr key={row.id} className="hover:opacity-90 cursor-pointer" style={{ borderBottom: "1px solid var(--border)" }} onClick={() => setSelectedRequest(row)}>
+                    <td className="px-5 py-4">
+                      <div className="flex items-center gap-3">
+                        <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
+                          <span className="text-white" style={{ fontSize: "0.75rem", fontWeight: 700 }}>{row.initials}</span>
+                        </div>
+                        <div>
+                          <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>{row.name}</div>
+                          <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{row.email}</div>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-5 py-4" style={{ fontSize: "0.875rem" }}>{row.dept}</td>
+                    <td className="px-5 py-4" style={{ fontSize: "0.875rem", color: "var(--muted-foreground)" }}>{row.role}</td>
+                    <td className="px-5 py-4">
+                      <span className="px-2.5 py-0.5 rounded text-[10px] font-bold"
+                        style={{ background: sc.bg, color: sc.color }}>
+                        {row.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-left" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => setSelectedRequest(row)} className="p-1.5 rounded-lg hover:opacity-75 transition-opacity" style={{ background: "var(--muted)", color: "var(--foreground)" }}>
+                        <Eye className="w-4 h-4" />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Details Side Drawer Overlay */}
+      {selectedRequest && (
+        <div className="fixed inset-0 z-50 flex justify-end" style={{ background: "rgba(0,0,0,0.4)" }} onClick={() => setSelectedRequest(null)}>
+          <div className="w-[380px] h-full shadow-2xl flex flex-col justify-between p-6 animate-in slide-in-from-right duration-200"
+            style={{ background: "var(--card)", borderLeft: "1px solid var(--border)" }}
+            onClick={e => e.stopPropagation()}>
+            <div>
+              {/* Drawer Header */}
+              <div className="flex justify-between items-start mb-6">
+                <div className="flex items-center gap-3">
+                  <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
+                    <span className="text-white font-bold text-sm">{selectedRequest.initials}</span>
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-base">{selectedRequest.name}</h3>
+                    <p className="text-xs text-muted-foreground">HR Bridge</p>
+                  </div>
+                </div>
+                <button onClick={() => setSelectedRequest(null)} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Status Badge */}
+              <div className="mb-6">
+                <span className="px-3 py-1 rounded-full text-xs font-bold"
+                  style={{
+                    background: selectedRequest.status === "APPROVED" ? "rgba(16,185,129,0.15)" : selectedRequest.status === "PENDING" ? "rgba(245,158,11,0.15)" : "rgba(239,68,68,0.15)",
+                    color: selectedRequest.status === "APPROVED" ? "#10b981" : selectedRequest.status === "PENDING" ? "#f59e0b" : "#ef4444",
+                  }}
+                >
+                  {selectedRequest.status === "APPROVED" ? "Approved" : selectedRequest.status === "PENDING" ? "Pending" : "Rejected"}
+                </span>
+              </div>
+
+              {/* General Information */}
+              <div className="space-y-4">
+                <h4 className="text-[10px] font-bold text-muted-foreground uppercase tracking-wide">General Information</h4>
+                <div className="space-y-3">
+                  <div className="flex justify-between text-xs border-b pb-2" style={{ borderColor: "var(--border)" }}>
+                    <span className="text-muted-foreground">Department:</span>
+                    <span className="font-semibold">{selectedRequest.dept}</span>
+                  </div>
+                  <div className="flex justify-between text-xs border-b pb-2" style={{ borderColor: "var(--border)" }}>
+                    <span className="text-muted-foreground">Role/Type:</span>
+                    <span className="font-semibold">{selectedRequest.role}</span>
+                  </div>
+                  <div className="flex justify-between text-xs border-b pb-2" style={{ borderColor: "var(--border)" }}>
+                    <span className="text-muted-foreground">Date:</span>
+                    <span className="font-semibold">{selectedRequest.date}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Bottom Actions Drawer Panel */}
+            <div className="flex gap-3 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
+              {selectedRequest.status === "PENDING" ? (
+                <>
+                  <button onClick={() => handleStatusChange(selectedRequest.id, "REJECTED")} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-red-500 hover:bg-red-600 transition-all">
+                    Reject
+                  </button>
+                  <button onClick={() => handleStatusChange(selectedRequest.id, "APPROVED")} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-green-600 hover:bg-green-700 transition-all">
+                    Approve
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={() => handleStatusChange(selectedRequest.id, "PENDING")} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-blue-600 hover:bg-blue-700 transition-all">
+                    Update
+                  </button>
+                  <button onClick={() => handleDelete(selectedRequest.id)} className="flex-1 py-2.5 rounded-xl text-xs font-bold text-white bg-red-500 hover:bg-red-600 transition-all">
+                    Delete
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
