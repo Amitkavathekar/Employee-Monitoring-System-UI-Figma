@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
 import {
   Eye, EyeOff, Mail, Lock, User, ArrowRight, RefreshCw,
-  CheckCircle, AlertCircle, Monitor, Shield, Zap, ChevronLeft, Phone
+  CheckCircle, AlertCircle, Monitor, Shield, Zap, ChevronLeft, Phone,
+  ChevronDown, Building
 } from "lucide-react";
+
 
 type AuthView = "splash" | "login" | "register" | "forgot" | "reset" | "success" | "session-expired";
 
@@ -69,23 +71,24 @@ function SplashScreen({ onNext }: { onNext: () => void }) {
 }
 
 function LoginScreen({ onLogin, onForgot, onRegister }: { onLogin: (role: "admin" | "manager" | "employee") => void; onForgot: () => void; onRegister: () => void }) {
-  const [email, setEmail] = useState("admin@company.com");
-  const [password, setPassword] = useState("••••••••");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(false);
-  const [role, setRole] = useState<"admin" | "manager" | "employee">("admin");
+  const [role, setRole] = useState<"admin" | "manager" | "employee">("employee");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (role === "admin") {
-      setEmail("admin@company.com");
-    } else if (role === "manager") {
-      setEmail("manager@company.com");
+    const emailLower = email.toLowerCase();
+    if (emailLower.includes("admin")) {
+      setRole("admin");
+    } else if (emailLower.includes("manager")) {
+      setRole("manager");
     } else {
-      setEmail("john@company.com");
+      setRole("employee");
     }
-  }, [role]);
+  }, [email]);
 
   const handleLogin = () => {
     if (!email || !password) { setError("Please fill in all fields"); return; }
@@ -95,7 +98,7 @@ function LoginScreen({ onLogin, onForgot, onRegister }: { onLogin: (role: "admin
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen lg:h-screen flex bg-background lg:overflow-hidden">
       {/* Left Panel */}
       <div className="hidden lg:flex flex-1 items-center justify-center relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, #0b1020 0%, #141830 50%, #0d1625 100%)" }}>
@@ -151,26 +154,6 @@ function LoginScreen({ onLogin, onForgot, onRegister }: { onLogin: (role: "admin
 
           <h2 className="mb-1" style={{ fontWeight: 700 }}>Welcome back</h2>
           <p className="mb-8" style={{ color: "var(--muted-foreground)" }}>Sign in to your account to continue</p>
-
-          {/* Role Toggle */}
-          <div className="flex rounded-xl p-1 mb-6" style={{ background: "var(--muted)" }}>
-            {(["admin", "manager", "employee"] as const).map((r) => (
-              <button
-                key={r}
-                onClick={() => setRole(r)}
-                className="flex-1 py-2 rounded-lg capitalize transition-all"
-                style={{
-                  background: role === r ? "var(--primary)" : "transparent",
-                  color: role === r ? "white" : "var(--muted-foreground)",
-                  fontWeight: role === r ? 600 : 400,
-                  fontSize: "0.85rem",
-                }}
-              >
-                {r}
-              </button>
-            ))}
-          </div>
-
           {error && (
             <div className="flex items-center gap-2 mb-4 p-3 rounded-xl"
               style={{ background: "rgba(239,68,68,0.1)", border: "1px solid rgba(239,68,68,0.2)", color: "var(--destructive)" }}>
@@ -263,12 +246,14 @@ function LoginScreen({ onLogin, onForgot, onRegister }: { onLogin: (role: "admin
             </button>
           </div>
 
-          <div className="mt-6 text-center" style={{ fontSize: "0.875rem" }}>
-            <span style={{ color: "var(--muted-foreground)" }}>Don't have an account? </span>
-            <button onClick={onRegister} style={{ color: "var(--primary)", fontWeight: 600 }} className="hover:underline">
-              Sign Up
-            </button>
-          </div>
+          {!email.toLowerCase().includes("admin") && (
+            <div className="mt-6 text-center" style={{ fontSize: "0.875rem" }}>
+              <span style={{ color: "var(--muted-foreground)" }}>Don't have an account? </span>
+              <button onClick={onRegister} style={{ color: "var(--primary)", fontWeight: 600 }} className="hover:underline">
+                Sign Up
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -512,18 +497,19 @@ function RegisterScreen({ onBack, onSuccess }: { onBack: () => void; onSuccess: 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
+  const [role, setRole] = useState<"employee" | "manager">("employee");
+  const [company, setCompany] = useState("");
   const [terms, setTerms] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const handleRegister = () => {
-    if (!name || !email || !password || !confirm) {
+    if (!name || !email || !password) {
       setError("Please fill in all fields");
       return;
     }
-    if (password !== confirm) {
-      setError("Passwords do not match");
+    if (role === "employee" && !company) {
+      setError("Please select a company");
       return;
     }
     if (!terms) {
@@ -539,7 +525,7 @@ function RegisterScreen({ onBack, onSuccess }: { onBack: () => void; onSuccess: 
   };
 
   return (
-    <div className="min-h-screen flex bg-background">
+    <div className="min-h-screen lg:h-screen flex bg-background lg:overflow-hidden">
       {/* Left Panel */}
       <div className="hidden lg:flex flex-1 items-center justify-center relative overflow-hidden"
         style={{ background: "linear-gradient(135deg, #0b1020 0%, #141830 50%, #0d1625 100%)" }}>
@@ -615,6 +601,45 @@ function RegisterScreen({ onBack, onSuccess }: { onBack: () => void; onSuccess: 
             </div>
 
             <div>
+              <label className="block mb-1.5" style={{ fontSize: "0.875rem" }}>Role</label>
+              <div className="relative">
+                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
+                <select
+                  value={role}
+                  onChange={e => setRole(e.target.value as "employee" | "manager")}
+                  className="w-full pl-11 pr-10 py-3 rounded-xl outline-none appearance-none cursor-pointer"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}
+                >
+                  <option value="employee" style={{ background: "var(--background)", color: "var(--foreground)" }}>Employee</option>
+                  <option value="manager" style={{ background: "var(--background)", color: "var(--foreground)" }}>Manager</option>
+                </select>
+                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--muted-foreground)" }} />
+              </div>
+            </div>
+
+            {role === "employee" && (
+              <div>
+                <label className="block mb-1.5" style={{ fontSize: "0.875rem" }}>Company</label>
+                <div className="relative">
+                  <Building className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
+                  <select
+                    value={company}
+                    onChange={e => setCompany(e.target.value)}
+                    className="w-full pl-11 pr-10 py-3 rounded-xl outline-none appearance-none cursor-pointer"
+                    style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}
+                  >
+                    <option value="" style={{ background: "var(--background)", color: "var(--muted-foreground)" }}>Select Company</option>
+                    <option value="Acme Corp" style={{ background: "var(--background)", color: "var(--foreground)" }}>Acme Corp</option>
+                    <option value="TechGlobal Inc" style={{ background: "var(--background)", color: "var(--foreground)" }}>TechGlobal Inc</option>
+                    <option value="Innovate LLC" style={{ background: "var(--background)", color: "var(--foreground)" }}>Innovate LLC</option>
+                    <option value="Core Systems" style={{ background: "var(--background)", color: "var(--foreground)" }}>Core Systems</option>
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--muted-foreground)" }} />
+                </div>
+              </div>
+            )}
+
+            <div>
               <label className="block mb-1.5" style={{ fontSize: "0.875rem" }}>Password</label>
               <div className="relative">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
@@ -629,20 +654,6 @@ function RegisterScreen({ onBack, onSuccess }: { onBack: () => void; onSuccess: 
               </div>
             </div>
 
-            <div>
-              <label className="block mb-1.5" style={{ fontSize: "0.875rem" }}>Confirm Password</label>
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
-                <input
-                  type="password"
-                  value={confirm}
-                  onChange={e => setConfirm(e.target.value)}
-                  placeholder="Confirm your password"
-                  className="w-full pl-11 pr-4 py-3 rounded-xl outline-none"
-                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}
-                />
-              </div>
-            </div>
 
             <label className="flex items-center gap-2 cursor-pointer mt-2">
               <div

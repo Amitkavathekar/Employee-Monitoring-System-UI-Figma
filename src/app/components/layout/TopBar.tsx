@@ -142,7 +142,7 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
               </div>
             )}
             <div className="hidden md:block text-left">
-              <div style={{ fontSize: "0.8rem", fontWeight: 600 }}>{role === "admin" ? "Super Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}</div>
+              <div style={{ fontSize: "0.8rem", fontWeight: 600 }}>{role === "admin" ? " Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}</div>
               <div style={{ fontSize: "0.7rem", color: "var(--muted-foreground)", textTransform: "capitalize" }}>{role}</div>
             </div>
             <ChevronDown className="w-3.5 h-3.5 hidden md:block" style={{ color: "var(--muted-foreground)" }} />
@@ -152,7 +152,7 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
             <div className="absolute right-0 top-11 w-52 rounded-2xl shadow-2xl z-50 overflow-hidden"
               style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
               <div className="px-4 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
-                <p style={{ fontWeight: 600, fontSize: "0.875rem" }}>{role === "admin" ? "Super Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}</p>
+                <p style={{ fontWeight: 600, fontSize: "0.875rem" }}>{role === "admin" ? " Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}</p>
                 <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>
                   {role === "admin" ? "admin@company.com" : role === "manager" ? "manager@company.com" : "john@company.com"}
                 </p>

@@ -453,7 +453,7 @@ export function AttendanceManagement() {
               <option value="absent">Absent</option>
               <option value="late">Late</option>
             </select>
-            
+
             <button className="flex items-center gap-2 px-3 py-2 rounded-xl text-white"
               style={{ background: "var(--primary)", fontSize: "0.8rem", fontWeight: 500 }}>
               <Download className="w-4 h-4" /> Export
@@ -1125,24 +1125,24 @@ interface ApprovalRequest {
 }
 
 const initialEmployeeRequests: ApprovalRequest[] = [
-  { id: 1, name: "Radha P", email: "radhaP@gmail.com", dept: "IT", role: "Web developer", status: "APPROVED", date: "6/5/2026", initials: "RP" },
-  { id: 2, name: "Kishori T", email: "kishori@gmail.com", dept: "--", role: "full stack developer", status: "APPROVED", date: "5/24/2026", initials: "KT" },
-  { id: 3, name: "Raj Tipugade", email: "raj29@gmail.com", dept: "--", role: "Web developer", status: "APPROVED", date: "5/28/2026", initials: "RT" },
-  { id: 4, name: "Piyush K", email: "piyush@gmail.com", dept: "IT", role: "Developer", status: "APPROVED", date: "6/1/2026", initials: "PK" },
-  { id: 5, name: "Prathamesh Kamble", email: "prathameshdhk06@gmail.com", dept: "IT", role: "full stack dev", status: "PENDING", date: "5/26/2026", initials: "PK" },
-  { id: 6, name: "Jhon F", email: "jhon@gmail.com", dept: "--", role: "SDE-II", status: "REJECTED", date: "5/25/2026", initials: "JF" },
+  { id: 1, name: "Radha P", email: "radhaP@gmail.com", dept: "IT", role: "Manager", status: "APPROVED", date: "6/5/2026", initials: "RP" },
+  { id: 2, name: "Kishori T", email: "kishori@gmail.com", dept: "--", role: "Manager", status: "PENDING", date: "5/24/2026", initials: "KT" },
+  { id: 3, name: "Raj Tipugade", email: "raj29@gmail.com", dept: "--", role: "Manager", status: "APPROVED", date: "5/28/2026", initials: "RT" },
+  { id: 4, name: "Piyush K", email: "piyush@gmail.com", dept: "IT", role: "Manager", status: "REJECTED", date: "6/1/2026", initials: "PK" },
+  { id: 5, name: "Prathamesh Kamble", email: "prathameshdhk06@gmail.com", dept: "IT", role: "Manager", status: "PENDING", date: "5/26/2026", initials: "PK" },
+  { id: 6, name: "Jhon F", email: "jhon@gmail.com", dept: "--", role: "Manager", status: "REJECTED", date: "5/25/2026", initials: "JF" },
 ];
 
 const initialAdminRequests: ApprovalRequest[] = [
-  { id: 1, name: "Alex Morgan", email: "alex@company.com", dept: "Operations", role: "Admin", status: "APPROVED", date: "6/10/2026", initials: "AM" },
-  { id: 2, name: "John Doe", email: "john@company.com", dept: "Engineering", role: "Tech Lead", status: "APPROVED", date: "6/12/2026", initials: "JD" },
-  { id: 3, name: "Samantha R", email: "samantha@company.com", dept: "Sales", role: "Sales Admin", status: "PENDING", date: "6/15/2026", initials: "SR" },
-  { id: 4, name: "Robert K", email: "robert@company.com", dept: "HR", role: "HR Admin", status: "REJECTED", date: "6/11/2026", initials: "RK" },
+  { id: 1, name: "Alex Morgan", email: "alex@company.com", dept: "Operations", role: "Employee", status: "APPROVED", date: "6/10/2026", initials: "AM" },
+  { id: 2, name: "John Doe", email: "john@company.com", dept: "Engineering", role: "Employee", status: "APPROVED", date: "6/12/2026", initials: "JD" },
+  { id: 3, name: "Samantha R", email: "samantha@company.com", dept: "Sales", role: "Employee", status: "PENDING", date: "6/15/2026", initials: "SR" },
+  { id: 4, name: "Robert K", email: "robert@company.com", dept: "HR", role: "Employee", status: "REJECTED", date: "6/11/2026", initials: "RK" },
 ];
 
 export function ApprovalsPage({ role }: { role?: string }) {
   const isAdmin = role === "admin";
-  const [requests, setRequests] = useState<ApprovalRequest[]>(() => 
+  const [requests, setRequests] = useState<ApprovalRequest[]>(() =>
     isAdmin ? initialEmployeeRequests : initialAdminRequests
   );
   const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
@@ -1202,7 +1202,7 @@ export function ApprovalsPage({ role }: { role?: string }) {
         <div className="p-5 flex items-center justify-between flex-wrap gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
           <div className="flex gap-2">
             <button className="px-4 py-2 text-xs font-semibold rounded-xl text-white" style={{ background: "var(--primary)" }}>
-              {isAdmin ? "Employee Approval" : "Admin Approval"}
+              {isAdmin ? "Manager Approval " : "Employee Approval"}
             </button>
           </div>
 

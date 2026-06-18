@@ -109,7 +109,7 @@ export function Sidebar({ role, activePage, onNavigate, onLogout, isDark, userPh
           {!collapsed && (
             <div className="overflow-hidden">
               <div style={{ fontSize: "0.85rem", fontWeight: 600, color: "var(--sidebar-foreground)", whiteSpace: "nowrap" }}>
-                {role === "admin" ? "Super Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}
+                {role === "admin" ? "Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}
               </div>
               <div className="flex items-center gap-1">
                 <div className="w-1.5 h-1.5 rounded-full animate-pulse-dot" style={{ background: "#10b981" }} />
