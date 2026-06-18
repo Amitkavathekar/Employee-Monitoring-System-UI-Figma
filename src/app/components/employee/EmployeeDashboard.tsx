@@ -1,22 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   CheckCircle, Activity, Coffee, Monitor, ArrowUp, ArrowDown, Play,
-  LogIn, LogOut
+  LogIn, LogOut, ChevronDown, Bell, Users, XCircle
 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 
-const recentActivities = [
-  { id: 1, action: "Checked In", time: "9:02 AM", icon: CheckCircle, color: "#10b981" },
-  { id: 2, action: "Screenshot Captured", time: "9:30 AM", icon: Monitor, color: "#6366f1" },
-  { id: 3, action: "Break Started", time: "12:00 PM", icon: Coffee, color: "#f59e0b" },
-  { id: 4, action: "Break Ended", time: "12:30 PM", icon: Play, color: "#10b981" },
-  { id: 5, action: "Recording Started", time: "2:00 PM", icon: Activity, color: "#ef4444" },
+const empNotifs = [
+  { id: 1, title: "Checked In", message: "You checked in at 9:02 AM — 2 minutes late", time: "2m ago", type: "late", read: false },
+  { id: 2, title: "Recording Started", message: "Screen recording session started by Manager (Alex Morgan)", time: "5m ago", type: "recording", read: false },
+  { id: 3, title: "Screenshot Captured", message: "Auto-captured screenshot of active window (VS Code) for productivity logs", time: "10m ago", type: "screenshot", read: false },
+  { id: 8, title: "Break Started", message: "You started a coffee break at 12:00 PM", time: "15m ago", type: "break", read: false },
+  { id: 9, title: "Break Ended", message: "You ended break and resumed working at 12:30 PM", time: "45m ago", type: "break", read: true },
+  { id: 4, title: "Absence Warning", message: "Company attendance alert — threshold warning", time: "2h ago", type: "alert", read: true },
+  { id: 5, title: "System Backup", message: "Daily workspace database backup completed", time: "3h ago", type: "system", read: true },
+  { id: 6, title: "Storage Alert", message: "Your screenshots storage space has reached 80%", time: "Yesterday", type: "alert", read: true },
 ];
 
-export function EmployeeDashboard() {
+const typeColors: Record<string, string> = {
+  late: "#f59e0b", recording: "#ef4444", employee: "#10b981", alert: "#ef4444", system: "#6366f1",
+  screenshot: "#6366f1", break: "#f59e0b",
+};
+
+const iconMap: Record<string, any> = {
+  late: CheckCircle,
+  recording: Activity,
+  employee: Users,
+  screenshot: Monitor,
+  break: Coffee,
+  alert: XCircle,
+  system: Bell,
+};
+
+export function EmployeeDashboard({ selectedNotificationId, setSelectedNotificationId }: any) {
   const [checkedIn, setCheckedIn] = useState(true);
   const [onBreak, setOnBreak] = useState(false);
   const [checkInTime] = useState("09:02 AM");
+  const [notifs, setNotifs] = useState(empNotifs);
+  const [expandedNotifId, setExpandedNotifId] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (selectedNotificationId !== null && selectedNotificationId !== undefined) {
+      setExpandedNotifId(selectedNotificationId);
+      setNotifs(prev => prev.map(n => n.id === selectedNotificationId ? { ...n, read: true } : n));
+      setTimeout(() => {
+        const element = document.getElementById(`notif-${selectedNotificationId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+      if (setSelectedNotificationId) {
+        setSelectedNotificationId(null);
+      }
+    }
+  }, [selectedNotificationId, setSelectedNotificationId]);
 
   const attendanceData = [
     { name: "Present", value: 10, color: "#10b981" },
@@ -92,18 +128,45 @@ export function EmployeeDashboard() {
         <div className="lg:col-span-2 rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)", height: "380px" }}>
           <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Recent Activities</h3>
           <div className="space-y-3 overflow-y-auto pr-1 flex-1">
-            {recentActivities.map(({ id, action, time, icon: Icon, color }) => (
-              <div key={id} className="flex items-center gap-3 py-3" style={{ borderBottom: "1px solid var(--border)" }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${color}15` }}>
-                  <Icon className="w-4 h-4" style={{ color }} />
+            {notifs.map((n) => {
+              const isExpanded = expandedNotifId === n.id;
+              const isBreakEnd = n.type === "break" && n.title.toLowerCase().includes("end");
+              const IconComponent = isBreakEnd ? Play : (iconMap[n.type] || Bell);
+              const color = isBreakEnd ? "#10b981" : (typeColors[n.type] || "#6366f1");
+
+              return (
+                <div key={n.id} 
+                  id={`notif-${n.id}`}
+                  onClick={() => setExpandedNotifId(isExpanded ? null : n.id)}
+                  className="cursor-pointer transition-all hover:scale-[1.002]"
+                  style={{ 
+                    borderBottom: "1px solid var(--border)", 
+                    padding: "12px 0",
+                    background: n.read ? "transparent" : `${color}04`
+                  }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${color}15` }}>
+                      <IconComponent className="w-4 h-4" style={{ color }} />
+                    </div>
+                    <div className="flex-1">
+                      <span style={{ fontWeight: n.read ? 400 : 600, fontSize: "0.875rem", color: "var(--foreground)" }}>{n.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{n.time}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} style={{ color: "var(--muted-foreground)" }} />
+                    </div>
+                  </div>
+                  {isExpanded && (
+                    <div style={{ paddingLeft: "48px", paddingTop: "8px" }} className="animate-fade-in">
+                      <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>
+                        {n.message}
+                      </p>
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <span style={{ fontSize: "0.875rem", fontWeight: 500 }}>{action}</span>
-                </div>
-                <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{time}</span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 

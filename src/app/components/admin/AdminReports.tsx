@@ -4,7 +4,7 @@ import { Search, FileText, Download, Eye, Plus, CheckCircle, RefreshCw } from "l
 interface Report {
   id: number;
   name: string;
-  type: "Productivity" | "Attendance" | "Compliance" | "Activity" | "Performance";
+  type: "Productivity" | "Attendance" | "Screenshots" | "Recordings";
   department: string;
   generated: string;
   size: string;
@@ -16,20 +16,19 @@ interface Report {
 const initialReports: Report[] = [
   { id: 1, name: "Monthly Productivity Report", type: "Productivity", department: "All Departments", generated: "Jun 1, 2026", size: "2.4 MB", format: "PDF", status: "Ready" },
   { id: 2, name: "Attendance Summary — May 2026", type: "Attendance", department: "Engineering", generated: "Jun 1, 2026", size: "1.1 MB", format: "Excel", status: "Ready" },
-  { id: 3, name: "Policy Violations Log", type: "Compliance", department: "All Departments", generated: "Jun 9, 2026", size: "0.8 MB", format: "CSV", status: "Ready" },
-  { id: 4, name: "Screen Time Analysis — May", type: "Activity", department: "Sales", generated: "Jun 1, 2026", size: "3.2 MB", format: "PDF", status: "Ready" },
-  { id: 5, name: "Top Performers Q2 2026", type: "Performance", department: "All Departments", generated: "Jun 9, 2026", size: "0.6 MB", format: "PDF", status: "Ready" },
-  { id: 6, name: "Website Usage Report", type: "Activity", department: "Marketing", generated: "Jun 8, 2026", size: "1.5 MB", format: "Excel", status: "Ready" },
-  { id: 7, name: "Overtime Analysis — Q2", type: "Attendance", department: "All Departments", generated: "Jun 9, 2026", size: "0.9 MB", format: "PDF", status: "Generating", progress: 60 },
-  { id: 8, name: "Department Comparison Report", type: "Performance", department: "All Departments", generated: "Jun 7, 2026", size: "2.1 MB", format: "Excel", status: "Ready" },
+  { id: 3, name: "Desktop Screenshots Log", type: "Screenshots", department: "All Departments", generated: "Jun 9, 2026", size: "3.5 MB", format: "PDF", status: "Ready" },
+  { id: 4, name: "Daily Video Recording Summary", type: "Recordings", department: "Sales", generated: "Jun 1, 2026", size: "12.8 MB", format: "PDF", status: "Ready" },
+  { id: 5, name: "Productivity Breakdown Report", type: "Productivity", department: "Marketing", generated: "Jun 8, 2026", size: "1.5 MB", format: "Excel", status: "Ready" },
+  { id: 6, name: "Weekly Screen Capture Audit", type: "Screenshots", department: "All Departments", generated: "Jun 7, 2026", size: "4.2 MB", format: "PDF", status: "Ready" },
+  { id: 7, name: "Overtime Hours & Attendance Q2", type: "Attendance", department: "All Departments", generated: "Jun 9, 2026", size: "0.9 MB", format: "PDF", status: "Generating", progress: 60 },
+  { id: 8, name: "Security Recordings Audit", type: "Recordings", department: "Engineering", generated: "Jun 9, 2026", size: "25.4 MB", format: "CSV", status: "Ready" },
 ];
 
 const typeStyles: Record<string, { color: string; bg: string }> = {
   Productivity: { color: "#818cf8", bg: "rgba(129, 140, 248, 0.15)" },
   Attendance: { color: "#60a5fa", bg: "rgba(96, 165, 250, 0.15)" },
-  Compliance: { color: "#f87171", bg: "rgba(248, 113, 113, 0.15)" },
-  Activity: { color: "#fbbf24", bg: "rgba(251, 191, 36, 0.15)" },
-  Performance: { color: "#34d399", bg: "rgba(52, 211, 153, 0.15)" },
+  Screenshots: { color: "#06b6d4", bg: "rgba(6, 182, 212, 0.15)" },
+  Recordings: { color: "#fbbf24", bg: "rgba(251, 191, 36, 0.15)" },
 };
 
 const formatStyles: Record<string, { color: string; bg: string }> = {
@@ -50,7 +49,7 @@ export function AdminReports() {
       const newReport: Report = {
         id: Date.now(),
         name: `Custom System Report — ${new Date().toLocaleDateString()}`,
-        type: "Compliance",
+        type: "Productivity",
         department: "All Departments",
         generated: "Just Now",
         size: "1.2 MB",
@@ -126,7 +125,7 @@ export function AdminReports() {
 
       {/* Filter Tabs */}
       <div className="flex gap-2 flex-wrap" style={{ borderBottom: "1px solid var(--border)", paddingBottom: "12px" }}>
-        {["All", "Productivity", "Attendance", "Compliance", "Activity", "Performance"].map(tab => (
+        {["All", "Productivity", "Attendance", "Screenshots", "Recordings"].map(tab => (
           <button
             key={tab}
             onClick={() => setFilterType(tab)}

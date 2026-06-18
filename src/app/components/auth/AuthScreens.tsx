@@ -4,6 +4,7 @@ import {
   CheckCircle, AlertCircle, Monitor, Shield, Zap, ChevronLeft, Phone,
   ChevronDown, Building
 } from "lucide-react";
+import { toast } from "sonner";
 
 
 type AuthView = "splash" | "login" | "register" | "forgot" | "reset" | "success" | "session-expired";
@@ -268,7 +269,13 @@ function ForgotPasswordScreen({ onBack, onReset }: { onBack: () => void; onReset
   const handleSend = () => {
     if (!email) return;
     setLoading(true);
-    setTimeout(() => { setLoading(false); setSent(true); }, 1200);
+    setTimeout(() => { 
+      setLoading(false); 
+      setSent(true); 
+      toast.success("Reset link sent!", {
+        description: `We've sent a password reset link to ${email}.`,
+      });
+    }, 1200);
   };
 
   return (
@@ -356,7 +363,13 @@ function ResetPasswordScreen({ onBack, onSuccess }: { onBack: () => void; onSucc
   const handleReset = () => {
     if (!password || password !== confirm) return;
     setLoading(true);
-    setTimeout(() => { setLoading(false); onSuccess(); }, 1200);
+    setTimeout(() => { 
+      setLoading(false); 
+      onSuccess(); 
+      toast.success("Password reset successful!", {
+        description: "Your password has been changed. You can now log in.",
+      });
+    }, 1200);
   };
 
   return (
@@ -521,6 +534,9 @@ function RegisterScreen({ onBack, onSuccess }: { onBack: () => void; onSuccess: 
     setTimeout(() => {
       setLoading(false);
       onSuccess();
+      toast.success("Registration successful!", {
+        description: `Welcome, ${name}! Your account has been registered.`,
+      });
     }, 1200);
   };
 

@@ -1,9 +1,16 @@
 import { useState } from "react";
 import { Clock, Camera, CheckCircle, TrendingUp, ArrowUp, ArrowDown } from "lucide-react";
 import {
-  LineChart, Line, PieChart, Pie, Cell,
+  LineChart, Line, PieChart, Pie, Cell, BarChart, Bar,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from "recharts";
+
+const companyProductivityData = [
+  { company: "Acme Corp", score: 84, active: 92 },
+  { company: "TechGlobal Inc", score: 79, active: 88 },
+  { company: "Innovate LLC", score: 88, active: 95 },
+  { company: "Core Systems", score: 72, active: 81 },
+];
 
 const productivityTrendData = [
   { month: "Jan", avg: 75, top: 90, bottom: 50 },
@@ -60,25 +67,29 @@ export function AdminAnalytics() {
         {/* 4 Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           {[
-            { label: "Avg Daily Hours", value: "8.2h", sub: "+0.3h vs last period", icon: Clock, color: "#6366f1" },
-            { label: "Screenshots/Day", value: "5,102", sub: "+8% vs last period", icon: Camera, color: "#06b6d4" },
-            { label: "Idle Rate", value: "12.4%", sub: "-1.2% vs last period", icon: TrendingUp, color: "#10b981", inverse: true },
-            { label: "Compliance Score", value: "94.2%", sub: "+1.4% vs last period", icon: CheckCircle, color: "#f59e0b" },
-          ].map((metric, i) => (
-            <div key={i} className="p-4 rounded-xl flex flex-col justify-between" style={{ background: "var(--muted)", border: "1px solid var(--border)" }}>
-              <div className="flex items-center justify-between mb-2">
-                <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{metric.label}</span>
-                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${metric.color}15` }}>
-                  <metric.icon className="w-4 h-4" style={{ color: metric.color }} />
+            { label: "Avg Daily Hours", value: "8.2h", sub: "+0.3h vs last period", icon: Clock, color: "#6366f1", change: "up", isGood: true },
+            { label: "Screenshots/Day", value: "5,102", sub: "+8% vs last period", icon: Camera, color: "#06b6d4", change: "up", isGood: true },
+            { label: "Idle Rate", value: "12.4%", sub: "-1.2% vs last period", icon: TrendingUp, color: "#10b981", change: "down", isGood: true },
+            { label: "Compliance Score", value: "94.2%", sub: "+1.4% vs last period", icon: CheckCircle, color: "#f59e0b", change: "up", isGood: true },
+          ].map((metric, i) => {
+            const ArrowIcon = metric.change === "up" ? ArrowUp : ArrowDown;
+            const trendColor = metric.isGood ? "#10b981" : "#ef4444";
+            return (
+              <div key={i} className="p-4 rounded-xl flex flex-col justify-between" style={{ background: "var(--muted)", border: "1px solid var(--border)" }}>
+                <div className="flex items-center justify-between mb-2">
+                  <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{metric.label}</span>
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `${metric.color}15` }}>
+                    <metric.icon className="w-4 h-4" style={{ color: metric.color }} />
+                  </div>
+                </div>
+                <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "var(--foreground)", lineHeight: 1 }}>{metric.value}</div>
+                <div className="flex items-center gap-1 mt-2 text-[0.7rem] font-medium" style={{ color: trendColor }}>
+                  <ArrowIcon className="w-3 h-3" />
+                  <span>{metric.sub}</span>
                 </div>
               </div>
-              <div style={{ fontSize: "1.8rem", fontWeight: 800, color: "var(--foreground)", lineHeight: 1 }}>{metric.value}</div>
-              <div className="flex items-center gap-1 mt-2 text-[0.7rem] font-medium" style={{ color: "#10b981" }}>
-                <ArrowUp className="w-3 h-3" />
-                <span>{metric.sub}</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 
@@ -131,6 +142,26 @@ export function AdminAnalytics() {
                 </div>
               ))}
             </div>
+          </div>
+        </div>
+
+        {/* Company Productivity Breakdown */}
+        <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+          <div className="mb-4">
+            <h3 style={{ fontWeight: 600 }}>Company Productivity Breakdown</h3>
+            <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>Comparison of average productivity and active hour scores across client companies</p>
+          </div>
+          <div className="min-h-[220px]">
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={companyProductivityData}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="company" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} domain={[0, 100]} />
+                <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
+                <Bar dataKey="score" name="Avg Productivity %" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="active" name="Active Hours %" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
           </div>
         </div>
       </div>

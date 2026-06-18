@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Users, CheckCircle, XCircle, Wifi, TrendingUp, Clock, Camera, Video,
-  ArrowUp, ArrowDown, Activity, Bell
+  ArrowUp, ArrowDown, Activity, Bell, ChevronDown, Monitor, Coffee, Play
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
@@ -53,6 +53,9 @@ const mgrNotifs = [
   { id: 1, title: "John Doe Checked In", message: "John Doe checked in at 9:02 AM — 2 minutes late", time: "2m ago", type: "late", read: false },
   { id: 2, title: "Recording Started", message: "Emma Wilson started a screen recording session", time: "5m ago", type: "recording", read: false },
   { id: 3, title: "New Employee Added", message: "Ryan Park has been added to the Engineering team", time: "1h ago", type: "employee", read: false },
+  { id: 7, title: "Screenshot Captured", message: "Auto-captured screenshot of active window (VS Code) for Mike Chen", time: "10m ago", type: "screenshot", read: false },
+  { id: 8, title: "Break Started", message: "Sarah Johnson started a coffee break", time: "15m ago", type: "break", read: false },
+  { id: 9, title: "Break Ended", message: "Sarah Johnson ended break and resumed working", time: "45m ago", type: "break", read: true },
   { id: 4, title: "Mass Absence Alert", message: "5 employees are absent today — above average", time: "2h ago", type: "alert", read: true },
   { id: 5, title: "System Backup", message: "Daily backup completed successfully", time: "3h ago", type: "system", read: true },
   { id: 6, title: "Screenshot Quota", message: "Storage usage reached 80% of limit", time: "Yesterday", type: "alert", read: true },
@@ -60,6 +63,17 @@ const mgrNotifs = [
 
 const typeColors: Record<string, string> = {
   late: "#f59e0b", recording: "#ef4444", employee: "#10b981", alert: "#ef4444", system: "#6366f1",
+  screenshot: "#6366f1", break: "#f59e0b",
+};
+
+const iconMap: Record<string, any> = {
+  late: CheckCircle,
+  recording: Activity,
+  employee: Users,
+  screenshot: Monitor,
+  break: Coffee,
+  alert: XCircle,
+  system: Bell,
 };
 
 function MetricCard({ label, value, sub, icon: Icon, color, trend }: any) {
@@ -84,9 +98,26 @@ function MetricCard({ label, value, sub, icon: Icon, color, trend }: any) {
   );
 }
 
-export function ManagerDashboard() {
+export function ManagerDashboard({ selectedNotificationId, setSelectedNotificationId }: any) {
   const [notifs, setNotifs] = useState(mgrNotifs);
+  const [expandedNotifId, setExpandedNotifId] = useState<number | null>(null);
   const unreadCount = notifs.filter(n => !n.read).length;
+
+  useEffect(() => {
+    if (selectedNotificationId !== null && selectedNotificationId !== undefined) {
+      setExpandedNotifId(selectedNotificationId);
+      setNotifs(prev => prev.map(n => n.id === selectedNotificationId ? { ...n, read: true } : n));
+      setTimeout(() => {
+        const element = document.getElementById(`notif-${selectedNotificationId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
+      }, 100);
+      if (setSelectedNotificationId) {
+        setSelectedNotificationId(null);
+      }
+    }
+  }, [selectedNotificationId, setSelectedNotificationId]);
 
   const handleMarkRead = (id: number) => {
     setNotifs(notifs.map(n => n.id === id ? { ...n, read: true } : n));
@@ -106,9 +137,10 @@ export function ManagerDashboard() {
         <MetricCard label="Absent Today" value="4" sub="Down from 6 yesterday" icon={XCircle} color="#ef4444" trend={-33} />
       </div>
 
-      {/* Row 1: Notifications and Today's Attendance */}
+      {/* Row 1: Recent Activity and Today's Attendance */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {/* Recent Activity Card (Unified list of activities + notifications) */}
+        <div className="lg:col-span-2 rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)", height: "380px" }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <h3 style={{ fontWeight: 600 }}>Recent Activity</h3>
@@ -123,30 +155,53 @@ export function ManagerDashboard() {
               Mark all read
             </button>
           </div>
-          <div className="space-y-3 overflow-y-auto pr-1 flex-1 max-h-[220px]">
-            {notifs.map((n) => (
-              <div key={n.id}
-                onClick={() => handleMarkRead(n.id)}
-                className="rounded-2xl p-4 flex gap-4 cursor-pointer transition-all hover:scale-[1.005]"
-                style={{ background: n.read ? "var(--muted)" : `${typeColors[n.type] || "#6366f1"}08`, border: `1px solid ${n.read ? "var(--border)" : (typeColors[n.type] || "#6366f1") + "25"}` }}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"
-                  style={{ background: `${typeColors[n.type] || "#6366f1"}20` }}>
-                  <Bell className="w-5 h-5" style={{ color: typeColors[n.type] || "#6366f1" }} />
-                </div>
-                <div className="flex-1">
-                  <div className="flex justify-between items-start mb-1">
-                    <span style={{ fontWeight: n.read ? 400 : 600, fontSize: "0.9rem", color: "var(--foreground)" }}>{n.title}</span>
-                    <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", flexShrink: 0, marginLeft: "1rem" }}>{n.time}</span>
+          <div className="space-y-1 overflow-y-auto pr-1 flex-1">
+            {notifs.map((n) => {
+              const isExpanded = expandedNotifId === n.id;
+              const isBreakEnd = n.type === "break" && n.title.toLowerCase().includes("end");
+              const IconComponent = isBreakEnd ? Play : (iconMap[n.type] || Bell);
+              const color = isBreakEnd ? "#10b981" : (typeColors[n.type] || "#6366f1");
+
+              return (
+                <div key={n.id}
+                  id={`notif-${n.id}`}
+                  onClick={() => {
+                    handleMarkRead(n.id);
+                    setExpandedNotifId(isExpanded ? null : n.id);
+                  }}
+                  className="cursor-pointer transition-all hover:scale-[1.002]"
+                  style={{ 
+                    borderBottom: "1px solid var(--border)", 
+                    padding: "12px 0",
+                    background: n.read ? "transparent" : `${color}04`
+                  }}>
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ background: `${color}15` }}>
+                      <IconComponent className="w-4 h-4" style={{ color }} />
+                    </div>
+                    <div className="flex-1">
+                      <span style={{ fontWeight: n.read ? 400 : 600, fontSize: "0.875rem", color: "var(--foreground)" }}>{n.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{n.time}</span>
+                      <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} style={{ color: "var(--muted-foreground)" }} />
+                    </div>
+                    {!n.read && <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ background: color }} />}
                   </div>
-                  <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>{n.message}</p>
+                  {isExpanded && (
+                    <div style={{ paddingLeft: "48px", paddingTop: "8px" }} className="animate-fade-in">
+                      <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>{n.message}</p>
+                    </div>
+                  )}
                 </div>
-                {!n.read && <div className="w-2 h-2 rounded-full flex-shrink-0 mt-2" style={{ background: typeColors[n.type] || "#6366f1" }} />}
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
 
-        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        {/* Today's Attendance Card */}
+        <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)", height: "380px" }}>
           <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Today's Attendance</h3>
           <ResponsiveContainer width="100%" height={180}>
             <PieChart>

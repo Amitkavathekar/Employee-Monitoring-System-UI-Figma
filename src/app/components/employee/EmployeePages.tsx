@@ -3,7 +3,8 @@ import {
   Play, Square, Clock, Activity, Camera, Download, Trash2,
   Video, Eye, ZoomIn, Keyboard, Mouse, Globe, AppWindow,
   Bell, CheckCircle, AlertCircle, User, Mail, Phone, Building,
-  Calendar, Lock, TrendingUp, BarChart2, Target, Award, Coffee
+  Calendar, Lock, TrendingUp, BarChart2, Target, Award, Coffee,
+  Monitor
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line,
@@ -189,19 +190,27 @@ export function EmployeeProductivity() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Weekly Tasks Completion Bar Chart */}
+        {/* Performance Breakdown Progress Bars */}
         <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)", height: "380px" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Weekly Task Completion</h3>
-          <div className="flex-1 min-h-0">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={prodData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="week" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-                <YAxis tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-                <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-                <Bar dataKey="tasks" fill="#06b6d4" radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+          <h3 style={{ fontWeight: 600, marginBottom: "1.25rem" }}>Performance Breakdown</h3>
+          <div className="space-y-4 flex-1 overflow-y-auto pr-1">
+            {[
+              { name: "Attendance Consistency", value: 95, color: "#10b981" },
+              { name: "Working Hours Compliance", value: 88, color: "#6366f1" },
+              { name: "Task Completion Rate", value: 87, color: "#06b6d4" },
+              { name: "Activity Score", value: 91, color: "#f59e0b" },
+              { name: "Overall Productivity", value: 92, color: "#8b5cf6" },
+            ].map((item) => (
+              <div key={item.name} className="space-y-1.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span style={{ color: "var(--foreground)", fontWeight: 500 }}>{item.name}</span>
+                  <span style={{ color: item.color, fontWeight: 700 }}>{item.value}%</span>
+                </div>
+                <div className="h-2 w-full rounded-full" style={{ background: "var(--muted)" }}>
+                  <div className="h-2 rounded-full" style={{ width: `${item.value}%`, background: item.color }} />
+                </div>
+              </div>
+            ))}
           </div>
         </div>
 
@@ -242,8 +251,10 @@ const screenshots = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 export function EmployeeScreenshots() {
+  const [screenshotsList, setScreenshotsList] = useState(screenshots);
   const [view, setView] = useState<"grid" | "list">("grid");
   const [preview, setPreview] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -288,12 +299,22 @@ export function EmployeeScreenshots() {
       {/* Grid View */}
       {view === "grid" ? (
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-          {screenshots.map((ss) => (
-            <div key={ss.id} className="rounded-xl overflow-hidden cursor-pointer group transition-all hover:scale-[1.02]"
+          {screenshotsList.map((ss) => (
+            <div key={ss.id} className="rounded-xl overflow-hidden cursor-pointer group transition-all hover:scale-[1.02] relative"
               style={{ border: "1px solid var(--border)" }}
               onClick={() => setPreview(ss.id)}>
               <div className="h-32 relative flex items-center justify-center"
                 style={{ background: `linear-gradient(135deg, hsl(${ss.id * 30}, 40%, 30%) 0%, hsl(${ss.id * 30 + 60}, 50%, 20%) 100%)` }}>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDeleteConfirmId(ss.id);
+                  }}
+                  className="absolute top-2 left-2 p-1.5 rounded-lg hover:opacity-90 transition-opacity"
+                  style={{ background: "rgba(239,68,68,0.2)", color: "#ef4444", border: "1px solid rgba(239,68,68,0.3)", zIndex: 10 }}
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
                 <Monitor style={{ width: 40, height: 40, color: "rgba(255,255,255,0.3)" }} />
                 <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   style={{ background: "rgba(0,0,0,0.4)" }}>
@@ -322,7 +343,7 @@ export function EmployeeScreenshots() {
               </tr>
             </thead>
             <tbody>
-              {screenshots.map((ss) => (
+              {screenshotsList.map((ss) => (
                 <tr key={ss.id} style={{ borderBottom: "1px solid var(--border)" }}>
                   <td className="px-5 py-3">
                     <div className="w-12 h-8 rounded flex items-center justify-center"
@@ -351,7 +372,7 @@ export function EmployeeScreenshots() {
                         style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
                         <Download className="w-3.5 h-3.5" />
                       </button>
-                      <button className="p-1.5 rounded-lg hover:opacity-70 transition-opacity"
+                      <button onClick={() => setDeleteConfirmId(ss.id)} className="p-1.5 rounded-lg hover:opacity-70 transition-opacity"
                         style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
                         <Trash2 className="w-3.5 h-3.5" />
                       </button>
@@ -378,7 +399,7 @@ export function EmployeeScreenshots() {
             <div className="p-5 flex justify-between items-center">
               <div>
                 <div style={{ fontWeight: 600 }}>Screenshot #{preview}</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Jun 13, 2026 · Activity: {screenshots[preview-1]?.activity}%</div>
+                <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Jun 13, 2026 · Activity: {screenshotsList[preview-1]?.activity}%</div>
               </div>
               <div className="flex gap-2">
                 <button className="p-2 rounded-xl" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
@@ -388,6 +409,44 @@ export function EmployeeScreenshots() {
                   ✕
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setDeleteConfirmId(null)}>
+          <div className="rounded-2xl w-full max-w-md p-6 relative animate-fade-in" style={{ background: "var(--card)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setDeleteConfirmId(null)} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">✕</button>
+            
+            <div className="flex gap-4 items-start mt-2">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(239,68,68,0.1)" }}>
+                <AlertCircle className="w-6 h-6" style={{ color: "#ef4444" }} />
+              </div>
+              <div className="space-y-1">
+                <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Delete Screenshot</h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>
+                  Are you sure you want to delete this screenshot? All associated screenshot information will be permanently removed.
+                </p>
+                <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", opacity: 0.8 }}>
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 500, color: "var(--foreground)" }}>
+                No, Cancel
+              </button>
+              <button onClick={() => {
+                if (deleteConfirmId !== null) {
+                  setScreenshotsList(screenshotsList.filter(s => s.id !== deleteConfirmId));
+                  setDeleteConfirmId(null);
+                }
+              }} className="px-4 py-2 rounded-xl text-white" style={{ background: "#ef4444", fontSize: "0.875rem", fontWeight: 600 }}>
+                Yes, Delete
+              </button>
             </div>
           </div>
         </div>
@@ -406,8 +465,10 @@ const recordings = [
 ];
 
 export function EmployeeRecordings() {
+  const [recordingsList, setRecordingsList] = useState(recordings);
   const [isRecording, setIsRecording] = useState(false);
   const [playing, setPlaying] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -458,7 +519,7 @@ export function EmployeeRecordings() {
           <h3 style={{ fontWeight: 600 }}>Recording History</h3>
         </div>
         <div className="divide-y" style={{ borderColor: "var(--border)" }}>
-          {recordings.map((rec) => (
+          {recordingsList.map((rec) => (
             <div key={rec.id} className="p-5 flex items-center gap-4">
               <div className="w-16 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                 style={{ background: `hsl(${rec.id * 60}, 50%, 30%)` }}>
@@ -481,7 +542,7 @@ export function EmployeeRecordings() {
                 <button className="p-2 rounded-xl" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
                   <Download className="w-4 h-4" />
                 </button>
-                <button className="p-2 rounded-xl" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
+                <button onClick={() => setDeleteConfirmId(rec.id)} className="p-2 rounded-xl" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -489,6 +550,44 @@ export function EmployeeRecordings() {
           ))}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setDeleteConfirmId(null)}>
+          <div className="rounded-2xl w-full max-w-md p-6 relative animate-fade-in" style={{ background: "var(--card)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setDeleteConfirmId(null)} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">✕</button>
+            
+            <div className="flex gap-4 items-start mt-2">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(239,68,68,0.1)" }}>
+                <AlertCircle className="w-6 h-6" style={{ color: "#ef4444" }} />
+              </div>
+              <div className="space-y-1">
+                <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Delete Recording</h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>
+                  Are you sure you want to delete this recording? All associated recording information will be permanently removed.
+                </p>
+                <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", opacity: 0.8 }}>
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 500, color: "var(--foreground)" }}>
+                No, Cancel
+              </button>
+              <button onClick={() => {
+                if (deleteConfirmId !== null) {
+                  setRecordingsList(recordingsList.filter(r => r.id !== deleteConfirmId));
+                  setDeleteConfirmId(null);
+                }
+              }} className="px-4 py-2 rounded-xl text-white" style={{ background: "#ef4444", fontSize: "0.875rem", fontWeight: 600 }}>
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -730,18 +829,12 @@ export function EmployeeProfile({
             }}
           />
           <label htmlFor="profile-photo-upload" className="cursor-pointer block relative">
-            {userPhoto ? (
-              <img
-                src={userPhoto}
-                alt="John Doe"
-                className="w-24 h-24 rounded-2xl object-cover glow-primary"
-                style={{ border: "2px solid var(--primary)" }}
-              />
-            ) : (
-              <div className="w-24 h-24 rounded-2xl gradient-primary flex items-center justify-center glow-primary">
-                <span className="text-white" style={{ fontSize: "2rem", fontWeight: 700 }}>JD</span>
-              </div>
-            )}
+            <img
+              src={userPhoto || "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop&crop=face"}
+              alt="John Doe"
+              className="w-24 h-24 rounded-2xl object-cover glow-primary"
+              style={{ border: "2px solid var(--primary)" }}
+            />
             <div className="absolute inset-0 bg-black/40 rounded-2xl opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
               <Camera className="w-6 h-6 text-white" />
             </div>

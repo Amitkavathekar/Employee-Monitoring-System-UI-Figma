@@ -10,6 +10,7 @@ interface Policy {
   description: string;
   icon: "Camera" | "Globe" | "Clock" | "Activity" | "Bell" | "Shield";
   departments: string;
+  targetRole?: "Manager" | "Employee" | "All Roles";
   enabled: boolean;
   // Specific Settings
   captureInterval?: string;
@@ -30,6 +31,7 @@ const initialPolicies: Policy[] = [
     description: "Automated periodic screenshot capture during work hours",
     icon: "Camera",
     departments: "All Departments",
+    targetRole: "Employee",
     enabled: false,
     captureInterval: "Every 5 minutes",
     blurPersonalContent: true,
@@ -42,6 +44,7 @@ const initialPolicies: Policy[] = [
     description: "Monitor and categorize websites visited during work hours",
     icon: "Globe",
     departments: "Engineering, Sales, Marketing",
+    targetRole: "Employee",
     enabled: true,
     blockedCategories: ["Social Media", "Gaming", "Shopping"],
   },
@@ -51,6 +54,7 @@ const initialPolicies: Policy[] = [
     description: "Define and enforce standard working hours per department",
     icon: "Clock",
     departments: "All Departments",
+    targetRole: "All Roles",
     enabled: true,
     startTime: "09:00 AM",
     endTime: "05:00 PM",
@@ -61,6 +65,7 @@ const initialPolicies: Policy[] = [
     description: "Detect and track employee idle periods",
     icon: "Activity",
     departments: "All Departments",
+    targetRole: "Employee",
     enabled: true,
     idleThreshold: "10 minutes",
   },
@@ -70,6 +75,7 @@ const initialPolicies: Policy[] = [
     description: "Configure alerts for policy violations (e.g., idle time, unauthorized website/app)",
     icon: "Bell",
     departments: "All Departments",
+    targetRole: "All Roles",
     enabled: true,
     alertChannels: ["System Notification", "Email"],
   }
@@ -119,6 +125,7 @@ export function AdminPolicies() {
   const [newTitle, setNewTitle] = useState("");
   const [newDescription, setNewDescription] = useState("");
   const [newDept, setNewDept] = useState("All Departments");
+  const [newTargetRole, setNewTargetRole] = useState<"Manager" | "Employee" | "All Roles">("All Roles");
   const [newIcon, setNewIcon] = useState<"Camera" | "Globe" | "Clock" | "Activity" | "Bell" | "Shield">("Shield");
   const [newEnabled, setNewEnabled] = useState(true);
 
@@ -197,6 +204,7 @@ export function AdminPolicies() {
       description: newDescription,
       icon: newIcon,
       departments: newDept,
+      targetRole: newTargetRole,
       enabled: newEnabled,
       // Default placeholder fields based on icon selection
       captureInterval: newIcon === "Camera" ? "Every 5 minutes" : undefined,
@@ -213,6 +221,7 @@ export function AdminPolicies() {
     setNewTitle("");
     setNewDescription("");
     setNewDept("All Departments");
+    setNewTargetRole("All Roles");
     setNewIcon("Shield");
     setNewEnabled(true);
   };
@@ -338,10 +347,21 @@ export function AdminPolicies() {
                   </div>
                 </div>
 
-                <div className="flex items-center gap-4 ml-auto sm:ml-0 flex-shrink-0">
+                <div className="flex items-center gap-3 ml-auto sm:ml-0 flex-shrink-0">
                   {/* Scope Department Description */}
                   <span className="hidden md:inline" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>
                     {policy.departments}
+                  </span>
+
+                  {/* Target Role Scope Badge */}
+                  <span className="px-2 py-0.5 rounded text-[0.7rem] font-semibold border"
+                    style={{
+                      background: policy.targetRole === "Manager" ? "rgba(99,102,241,0.1)" : policy.targetRole === "Employee" ? "rgba(6,182,212,0.1)" : "rgba(107,114,128,0.1)",
+                      color: policy.targetRole === "Manager" ? "#6366f1" : policy.targetRole === "Employee" ? "#06b6d4" : "var(--muted-foreground)",
+                      borderColor: policy.targetRole === "Manager" ? "rgba(99,102,241,0.2)" : policy.targetRole === "Employee" ? "rgba(6,182,212,0.2)" : "rgba(107,114,128,0.2)",
+                    }}
+                  >
+                    {policy.targetRole || "All Roles"}
                   </span>
 
                   {/* Switch Pill Toggle */}
@@ -367,7 +387,38 @@ export function AdminPolicies() {
 
               {/* Card Expanded Settings Area */}
               {isExpanded && (
-                <div className="px-5 pb-5 pt-2" style={{ borderTop: "1px solid var(--border)" }}>
+                <div className="px-5 pb-5 pt-4 space-y-4" style={{ borderTop: "1px solid var(--border)" }}>
+                  {/* Shared Global Scope Settings */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-4" style={{ borderBottom: "1px solid var(--border)", paddingBottom: "16px" }}>
+                    <div>
+                      <label className="block mb-1.5 text-xs font-semibold text-muted-foreground">
+                        Target Role Scope
+                      </label>
+                      <select
+                        value={draftSettings.targetRole || "All Roles"}
+                        onChange={e => setDraftSettings(prev => ({ ...prev, targetRole: e.target.value as any }))}
+                        className="w-full px-4 py-2 rounded-xl outline-none"
+                        style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem" }}
+                      >
+                        <option value="All Roles">All Roles</option>
+                        <option value="Manager">Manager Only</option>
+                        <option value="Employee">Employee Only</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block mb-1.5 text-xs font-semibold text-muted-foreground">
+                        Scope Departments
+                      </label>
+                      <input
+                        type="text"
+                        value={draftSettings.departments || ""}
+                        onChange={e => setDraftSettings(prev => ({ ...prev, departments: e.target.value }))}
+                        className="w-full px-4 py-2 rounded-xl outline-none"
+                        style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem" }}
+                      />
+                    </div>
+                  </div>
+
                   {policy.id === "screenshot" ? (
                     /* Screenshot Capture Expanded UI Details */
                     <div className="space-y-4">
@@ -469,23 +520,10 @@ export function AdminPolicies() {
                   ) : policy.id === "website" ? (
                     /* Website Tracking Expanded Settings */
                     <div className="space-y-4 pt-2">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div>
-                          <label className="block mb-1.5 text-xs font-semibold" style={{ color: "var(--muted-foreground)" }}>
-                            Scope Departments
-                          </label>
-                          <input
-                            type="text"
-                            value={draftSettings.departments || ""}
-                            onChange={e => setDraftSettings(prev => ({ ...prev, departments: e.target.value }))}
-                            className="w-full px-4 py-2 rounded-xl outline-none"
-                            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem" }}
-                          />
-                        </div>
-                        <div>
-                          <label className="block mb-1.5 text-xs font-semibold" style={{ color: "var(--muted-foreground)" }}>
-                            Blocked Domain Categories
-                          </label>
+                      <div>
+                        <label className="block mb-1.5 text-xs font-semibold text-muted-foreground">
+                          Blocked Domain Categories
+                        </label>
                           <div className="flex gap-2 flex-wrap pt-1">
                             {["Social Media", "Gaming", "Shopping", "Entertainment"].map(cat => {
                               const list = draftSettings.blockedCategories || [];
@@ -509,7 +547,6 @@ export function AdminPolicies() {
                             })}
                           </div>
                         </div>
-                      </div>
                       <div className="flex justify-end gap-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
                         <button
                           onClick={() => handleResetSettings(policy.id)}
@@ -622,18 +659,6 @@ export function AdminPolicies() {
                             </div>
                           </div>
                         )}
-                        <div>
-                          <label className="block mb-1.5 text-xs font-semibold" style={{ color: "var(--muted-foreground)" }}>
-                            Applicable Scope
-                          </label>
-                          <input
-                            type="text"
-                            value={draftSettings.departments || ""}
-                            onChange={e => setDraftSettings(prev => ({ ...prev, departments: e.target.value }))}
-                            className="w-full px-4 py-2 rounded-xl outline-none"
-                            style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem" }}
-                          />
-                        </div>
                       </div>
                       <div className="flex justify-end gap-3 pt-3" style={{ borderTop: "1px solid var(--border)" }}>
                         <button
@@ -730,6 +755,20 @@ export function AdminPolicies() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
+                  <label className="block mb-1 text-xs font-semibold text-muted-foreground">Target Role Scope</label>
+                  <select
+                    value={newTargetRole}
+                    onChange={e => setNewTargetRole(e.target.value as any)}
+                    className="w-full px-4 py-2.5 rounded-xl outline-none"
+                    style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem" }}
+                  >
+                    <option value="All Roles">All Roles</option>
+                    <option value="Manager">Manager Only</option>
+                    <option value="Employee">Employee Only</option>
+                  </select>
+                </div>
+
+                <div>
                   <label className="block mb-1 text-xs font-semibold text-muted-foreground">Department Scope</label>
                   <select
                     value={newDept}
@@ -745,23 +784,23 @@ export function AdminPolicies() {
                     <option value="HR">HR</option>
                   </select>
                 </div>
+              </div>
 
-                <div>
-                  <label className="block mb-1 text-xs font-semibold text-muted-foreground">Policy Icon</label>
-                  <select
-                    value={newIcon}
-                    onChange={e => setNewIcon(e.target.value as any)}
-                    className="w-full px-4 py-2.5 rounded-xl outline-none"
-                    style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem" }}
-                  >
-                    <option value="Shield">Shield (Default)</option>
-                    <option value="Camera">Camera (Capture)</option>
-                    <option value="Globe">Globe (Websites)</option>
-                    <option value="Clock">Clock (Time)</option>
-                    <option value="Activity">Activity (Idle)</option>
-                    <option value="Bell">Bell (Alerts)</option>
-                  </select>
-                </div>
+              <div>
+                <label className="block mb-1 text-xs font-semibold text-muted-foreground">Policy Icon</label>
+                <select
+                  value={newIcon}
+                  onChange={e => setNewIcon(e.target.value as any)}
+                  className="w-full px-4 py-2.5 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem" }}
+                >
+                  <option value="Shield">Shield (Default)</option>
+                  <option value="Camera">Camera (Capture)</option>
+                  <option value="Globe">Globe (Websites)</option>
+                  <option value="Clock">Clock (Time)</option>
+                  <option value="Activity">Activity (Idle)</option>
+                  <option value="Bell">Bell (Alerts)</option>
+                </select>
               </div>
 
               <div className="flex items-center justify-between py-1">

@@ -9,6 +9,7 @@ interface TopBarProps {
   onLogout: () => void;
   onToggleMobileMenu?: () => void;
   userPhoto?: string;
+  onNotificationClick?: (id: number) => void;
 }
 
 const notifications = [
@@ -19,15 +20,41 @@ const notifications = [
   { id: 5, type: "alert", text: "Sarah Johnson marked as late", time: "2h ago", read: true },
 ];
 
-export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onToggleMobileMenu, userPhoto }: TopBarProps) {
+export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onToggleMobileMenu, userPhoto, onNotificationClick }: TopBarProps) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchVal, setSearchVal] = useState("");
   const unread = notifications.filter(n => !n.read).length;
 
+  const handleNotifClick = (nId: number) => {
+    if (!onNotificationClick) return;
+    setShowNotifications(false);
+    
+    if (role === "employee") {
+      const mapping: Record<number, number> = {
+        1: 1, // Checked In
+        2: 2, // Screenshot Captured
+        3: 5, // Recording Started
+        4: 4, // Break Ended
+        5: 3, // Break Started
+      };
+      onNotificationClick(mapping[nId] || nId);
+    } else {
+      const mapping: Record<number, number> = {
+        1: 1, // John Doe Checked In
+        2: 7, // Screenshot Captured
+        3: 2, // Recording Started
+        4: 5, // System Backup
+        5: 1, // Late
+      };
+      onNotificationClick(mapping[nId] || nId);
+    }
+  };
+
   const pageTitles: Record<string, string> = {
     dashboard: "Dashboard",
     employees: "Employee Management",
+    clients: "Client Management",
     policies: "Monitoring Policies",
     applications: "Application Monitoring",
     websites: "Website Monitoring",
@@ -56,7 +83,7 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
         >
           <Menu className="w-5 h-5" />
         </button>
-        z        <div>
+        <div>
           <h2 style={{ fontWeight: 700, lineHeight: 1, fontSize: "1.1rem" }}>{pageTitles[pageTitle] || pageTitle}</h2>
           <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", marginTop: "2px" }}>
             {new Date().toLocaleDateString("en-US", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
@@ -104,7 +131,9 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
               </div>
               <div className="max-h-72 overflow-y-auto">
                 {notifications.map(n => (
-                  <div key={n.id} className="px-4 py-3 flex gap-3 hover:opacity-80 transition-opacity cursor-pointer"
+                  <div key={n.id} 
+                    onClick={() => handleNotifClick(n.id)}
+                    className="px-4 py-3 flex gap-3 hover:opacity-80 transition-opacity cursor-pointer"
                     style={{ borderBottom: "1px solid var(--border)", background: n.read ? "transparent" : "rgba(99,102,241,0.04)" }}>
                     <div className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0"
                       style={{ background: n.read ? "var(--muted)" : "rgba(99,102,241,0.15)" }}>
@@ -133,17 +162,13 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
             style={{ background: "var(--muted)" }}
           >
             {role === "admin" ? (
-              <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTLi6jCN0QDCOddESDs_W2Cofjv4_6X0KVAcA&s" alt="Admin" className="w-7 h-7 rounded-full object-cover" />
+              <img src="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=150&h=150&fit=crop" alt="Admin" className="w-7 h-7 rounded-full object-cover" />
             ) : role === "manager" ? (
-              <img src="data:image/jpeg;base64,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" alt="Alex Morgan" className="w-7 h-7 rounded-full object-cover" />
+              <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face" alt="Alex Morgan" className="w-7 h-7 rounded-full object-cover" />
             ) : role === "employee" && userPhoto ? (
               <img src={userPhoto} alt="John Doe" className="w-7 h-7 rounded-full object-cover" />
             ) : (
-              <div className="w-7 h-7 rounded-full gradient-primary flex items-center justify-center">
-                <span className="text-white" style={{ fontSize: "0.7rem", fontWeight: 700 }}>
-                  {role === "admin" ? "SA" : role === "manager" ? "AM" : "JD"}
-                </span>
-              </div>
+              <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop&crop=face" alt="User" className="w-7 h-7 rounded-full object-cover" />
             )}
             <div className="hidden md:block text-left">
               <div style={{ fontSize: "0.8rem", fontWeight: 600 }}>{role === "admin" ? " Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}</div>

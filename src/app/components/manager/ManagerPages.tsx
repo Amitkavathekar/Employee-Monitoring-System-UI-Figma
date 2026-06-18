@@ -7,22 +7,35 @@ import {
   Award, BarChart2, Building, Calendar, Mail, Phone, User,
   CheckSquare, Check, X
 } from "lucide-react";
+import { toast } from "sonner";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
 
+const getEmployeePhoto = (name: string) => {
+  if (name.startsWith("Sarah")) return "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face";
+  if (name.startsWith("Mike")) return "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face";
+  if (name.startsWith("Emma")) return "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face";
+  if (name.startsWith("James")) return "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face";
+  if (name.startsWith("Priya")) return "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face";
+  if (name.startsWith("David")) return "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face";
+  if (name.startsWith("Lisa")) return "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face";
+  if (name.startsWith("Alex")) return "https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=150&fit=crop&crop=face";
+  return "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop&crop=face";
+};
+
 // ─── Employee Management ──────────────────────────────────────────────────────
 
 const employees = [
-  { id: 1, name: "Sarah Johnson", email: "sarah@company.com", dept: "Engineering", role: "Senior Dev", status: "online", productivity: 97, checkIn: "09:00", initials: "SJ" },
-  { id: 2, name: "Mike Chen", email: "mike@company.com", dept: "Design", role: "UI Designer", status: "online", productivity: 95, checkIn: "09:10", initials: "MC" },
-  { id: 3, name: "Emma Wilson", email: "emma@company.com", dept: "Marketing", role: "Marketer", status: "break", productivity: 93, checkIn: "09:05", initials: "EW" },
-  { id: 4, name: "James Lee", email: "james@company.com", dept: "Engineering", role: "Junior Dev", status: "online", productivity: 92, checkIn: "09:30", initials: "JL" },
-  { id: 5, name: "Priya Patel", email: "priya@company.com", dept: "Sales", role: "Account Exec", status: "offline", productivity: 90, checkIn: "--", initials: "PP" },
-  { id: 6, name: "David Kim", email: "david@company.com", dept: "HR", role: "HR Manager", status: "online", productivity: 88, checkIn: "08:55", initials: "DK" },
-  { id: 7, name: "Lisa Torres", email: "lisa@company.com", dept: "Design", role: "Product Designer", status: "online", productivity: 86, checkIn: "09:15", initials: "LT" },
-  { id: 8, name: "Ryan Park", email: "ryan@company.com", dept: "Engineering", role: "Backend Dev", status: "online", productivity: 85, checkIn: "09:20", initials: "RP" },
+  { id: 1, name: "Sarah Johnson", email: "sarah@company.com", dept: "Engineering", role: "Senior Dev", status: "online", productivity: 97, checkIn: "09:00", initials: "SJ", photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face" },
+  { id: 2, name: "Mike Chen", email: "mike@company.com", dept: "Design", role: "UI Designer", status: "online", productivity: 95, checkIn: "09:10", initials: "MC", photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" },
+  { id: 3, name: "Emma Wilson", email: "emma@company.com", dept: "Marketing", role: "Marketer", status: "break", productivity: 93, checkIn: "09:05", initials: "EW", photoUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" },
+  { id: 4, name: "James Lee", email: "james@company.com", dept: "Engineering", role: "Junior Dev", status: "online", productivity: 92, checkIn: "09:30", initials: "JL", photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face" },
+  { id: 5, name: "Priya Patel", email: "priya@company.com", dept: "Sales", role: "Account Exec", status: "offline", productivity: 90, checkIn: "--", initials: "PP", photoUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&h=150&fit=crop&crop=face" },
+  { id: 6, name: "David Kim", email: "david@company.com", dept: "HR", role: "HR Manager", status: "online", productivity: 88, checkIn: "08:55", initials: "DK", photoUrl: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face" },
+  { id: 7, name: "Lisa Torres", email: "lisa@company.com", dept: "Design", role: "Product Designer", status: "online", productivity: 86, checkIn: "09:15", initials: "LT", photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face" },
+  { id: 8, name: "Ryan Park", email: "ryan@company.com", dept: "Engineering", role: "Backend Dev", status: "online", productivity: 85, checkIn: "09:20", initials: "RP", photoUrl: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop&crop=face" },
 ];
 
 const statusColors: Record<string, { color: string; bg: string }> = {
@@ -32,15 +45,78 @@ const statusColors: Record<string, { color: string; bg: string }> = {
 };
 
 export function EmployeeManagement() {
+  const [employeesList, setEmployeesList] = useState(employees);
   const [search, setSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("all");
   const [showModal, setShowModal] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [page, setPage] = useState(1);
 
-  const filtered = employees.filter(e =>
+  // Modal States
+  const [editingEmployee, setEditingEmployee] = useState<any | null>(null);
+  const [empName, setEmpName] = useState("");
+  const [empEmail, setEmpEmail] = useState("");
+  const [empPhone, setEmpPhone] = useState("");
+  const [empDept, setEmpDept] = useState("Engineering");
+  const [empRole, setEmpRole] = useState("Senior Dev");
+
+  const filtered = employeesList.filter(e =>
     (deptFilter === "all" || e.dept === deptFilter) &&
     (e.name.toLowerCase().includes(search.toLowerCase()) || e.email.toLowerCase().includes(search.toLowerCase()))
   );
+
+  const handleEditClick = (emp: any) => {
+    setEditingEmployee(emp);
+    setEmpName(emp.name);
+    setEmpEmail(emp.email);
+    setEmpPhone(emp.phone || "");
+    setEmpDept(emp.dept);
+    setEmpRole(emp.role);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setEditingEmployee(null);
+    setEmpName("");
+    setEmpEmail("");
+    setEmpPhone("");
+    setEmpDept("Engineering");
+    setEmpRole("Senior Dev");
+    setShowModal(false);
+  };
+
+  const handleSaveEmployee = () => {
+    if (!empName || !empEmail) return;
+    if (editingEmployee) {
+      setEmployeesList(employeesList.map(e => e.id === editingEmployee.id ? {
+        ...e,
+        name: empName,
+        email: empEmail,
+        dept: empDept,
+        role: empRole,
+        phone: empPhone,
+      } : e));
+      toast.success(`Updated employee details for "${empName}" successfully.`);
+    } else {
+      const initials = empName.split(" ").map(w => w[0]).join("").toUpperCase().slice(0, 2);
+      const newEmp = {
+        id: employeesList.length + 1,
+        name: empName,
+        email: empEmail,
+        dept: empDept,
+        role: empRole,
+        status: "online",
+        productivity: 90,
+        checkIn: "09:00",
+        initials: initials || "EM",
+        photoUrl: "https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=150&fit=crop&crop=face",
+        phone: empPhone,
+      };
+      setEmployeesList([...employeesList, newEmp]);
+      toast.success(`Employee "${empName}" registered successfully.`);
+    }
+    handleCloseModal();
+  };
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -80,7 +156,7 @@ export function EmployeeManagement() {
               <option value="Sales">Sales</option>
               <option value="HR">HR</option>
             </select>
-            <button onClick={() => setShowModal(true)}
+            <button onClick={() => { setEditingEmployee(null); setShowModal(true); }}
               className="flex items-center gap-2 px-4 py-2 rounded-xl text-white transition-all hover:opacity-90"
               style={{ background: "var(--primary)", fontSize: "0.8rem", fontWeight: 500 }}>
               <Plus className="w-4 h-4" /> Add Employee
@@ -104,9 +180,7 @@ export function EmployeeManagement() {
                   <tr key={emp.id} className="hover:opacity-80 transition-opacity" style={{ borderBottom: "1px solid var(--border)" }}>
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                          <span className="text-white" style={{ fontSize: "0.7rem", fontWeight: 700 }}>{emp.initials}</span>
-                        </div>
+                        <img src={emp.photoUrl} alt={emp.name} className="w-9 h-9 rounded-xl object-cover flex-shrink-0" />
                         <div>
                           <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>{emp.name}</div>
                           <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{emp.email}</div>
@@ -133,10 +207,11 @@ export function EmployeeManagement() {
                     </td>
                     <td className="px-5 py-3.5">
                       <div className="flex gap-1">
-                        <button className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ background: "rgba(99,102,241,0.1)", color: "var(--primary)" }}>
+                        <button onClick={() => handleEditClick(emp)} className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ background: "rgba(99,102,241,0.1)", color: "var(--primary)" }}>
                           <Edit2 className="w-3.5 h-3.5" />
                         </button>
-                        <button className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
+                        <button onClick={() => setDeleteConfirmId(emp.id)}
+                          className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                         <button className="p-1.5 rounded-lg hover:opacity-70 transition-opacity" style={{ background: "var(--muted)", color: "var(--muted-foreground)" }}>
@@ -172,38 +247,97 @@ export function EmployeeManagement() {
         </div>
       </div>
 
-      {/* Add Employee Modal */}
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setDeleteConfirmId(null)}>
+          <div className="rounded-2xl w-full max-w-md p-6 relative animate-fade-in" style={{ background: "var(--card)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setDeleteConfirmId(null)} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">✕</button>
+            
+            <div className="flex gap-4 items-start mt-2">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(239,68,68,0.1)" }}>
+                <AlertCircle className="w-6 h-6" style={{ color: "#ef4444" }} />
+              </div>
+              <div className="space-y-1">
+                <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Delete Employee</h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>
+                  Are you sure you want to delete this employee? All associated employee information will be permanently removed.
+                </p>
+                <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", opacity: 0.8 }}>
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 500, color: "var(--foreground)" }}>
+                No, Cancel
+              </button>
+              <button onClick={() => {
+                if (deleteConfirmId !== null) {
+                  const empToDelete = employeesList.find(e => e.id === deleteConfirmId);
+                  setEmployeesList(employeesList.filter(e => e.id !== deleteConfirmId));
+                  setDeleteConfirmId(null);
+                  if (empToDelete) {
+                    toast.info(`Employee "${empToDelete.name}" has been deleted.`);
+                  }
+                }
+              }} className="px-4 py-2 rounded-xl text-white" style={{ background: "#ef4444", fontSize: "0.875rem", fontWeight: 600 }}>
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add/Edit Employee Modal */}
       {showModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }}
-          onClick={() => setShowModal(false)}>
+          onClick={handleCloseModal}>
           <div className="rounded-2xl w-full max-w-md" style={{ background: "var(--card)", border: "1px solid var(--border)" }}
             onClick={e => e.stopPropagation()}>
             <div className="p-5 flex items-center justify-between" style={{ borderBottom: "1px solid var(--border)" }}>
-              <h3 style={{ fontWeight: 700 }}>Add New Employee</h3>
-              <button onClick={() => setShowModal(false)} className="w-8 h-8 rounded-full flex items-center justify-center"
+              <h3 style={{ fontWeight: 700 }}>{editingEmployee ? "Edit Employee" : "Add New Employee"}</h3>
+              <button onClick={handleCloseModal} className="w-8 h-8 rounded-full flex items-center justify-center"
                 style={{ background: "var(--muted)" }}>✕</button>
             </div>
             <div className="p-5 space-y-4">
-              {["Full Name", "Email Address", "Phone Number", "Department", "Designation"].map(label => (
-                <div key={label}>
-                  <label className="block mb-1.5" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{label}</label>
-                  {label === "Department" ? (
-                    <select className="w-full px-4 py-2.5 rounded-xl outline-none"
-                      style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}>
-                      <option>Engineering</option><option>Design</option><option>Marketing</option><option>Sales</option><option>HR</option>
-                    </select>
-                  ) : (
-                    <input className="w-full px-4 py-2.5 rounded-xl outline-none"
-                      style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }} />
-                  )}
-                </div>
-              ))}
+              <div>
+                <label className="block mb-1.5" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Full Name</label>
+                <input value={empName} onChange={e => setEmpName(e.target.value)} placeholder="Sarah Johnson"
+                  className="w-full px-4 py-2.5 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }} />
+              </div>
+              <div>
+                <label className="block mb-1.5" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Email Address</label>
+                <input value={empEmail} onChange={e => setEmpEmail(e.target.value)} placeholder="sarah@company.com"
+                  className="w-full px-4 py-2.5 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }} />
+              </div>
+              <div>
+                <label className="block mb-1.5" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Phone Number</label>
+                <input value={empPhone} onChange={e => setEmpPhone(e.target.value)} placeholder="+1 (555) 234-5678"
+                  className="w-full px-4 py-2.5 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }} />
+              </div>
+              <div>
+                <label className="block mb-1.5" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Department</label>
+                <select value={empDept} onChange={e => setEmpDept(e.target.value)} className="w-full px-4 py-2.5 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}>
+                  <option>Engineering</option><option>Design</option><option>Marketing</option><option>Sales</option><option>HR</option>
+                </select>
+              </div>
+              <div>
+                <label className="block mb-1.5" style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Designation</label>
+                <input value={empRole} onChange={e => setEmpRole(e.target.value)} placeholder="Senior Dev"
+                  className="w-full px-4 py-2.5 rounded-xl outline-none"
+                  style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }} />
+              </div>
             </div>
             <div className="p-5 flex gap-3" style={{ borderTop: "1px solid var(--border)" }}>
-              <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 rounded-xl"
+              <button onClick={handleCloseModal} className="flex-1 py-2.5 rounded-xl"
                 style={{ background: "var(--muted)", fontSize: "0.875rem", fontWeight: 500 }}>Cancel</button>
-              <button onClick={() => setShowModal(false)} className="flex-1 py-2.5 rounded-xl text-white gradient-primary"
-                style={{ fontSize: "0.875rem", fontWeight: 600 }}>Add Employee</button>
+              <button onClick={handleSaveEmployee} className="flex-1 py-2.5 rounded-xl text-white gradient-primary"
+                style={{ fontSize: "0.875rem", fontWeight: 600 }}>{editingEmployee ? "Save Changes" : "Add Employee"}</button>
             </div>
           </div>
         </div>
@@ -215,12 +349,12 @@ export function EmployeeManagement() {
 // ─── Live Monitoring ──────────────────────────────────────────────────────────
 
 const liveEmployees = [
-  { id: 1, name: "Sarah Johnson", dept: "Engineering", status: "active", session: "2h 45m", activity: 94, screenshots: 12, initials: "SJ" },
-  { id: 2, name: "Mike Chen", dept: "Design", status: "active", session: "3h 10m", activity: 88, screenshots: 15, initials: "MC" },
-  { id: 3, name: "Emma Wilson", dept: "Marketing", status: "break", session: "2h 05m", activity: 72, screenshots: 10, initials: "EW" },
-  { id: 4, name: "James Lee", dept: "Engineering", status: "idle", session: "1h 30m", activity: 45, screenshots: 7, initials: "JL" },
-  { id: 5, name: "David Kim", dept: "HR", status: "active", session: "3h 55m", activity: 91, screenshots: 18, initials: "DK" },
-  { id: 6, name: "Lisa Torres", dept: "Design", status: "active", session: "1h 15m", activity: 87, screenshots: 6, initials: "LT" },
+  { id: 1, name: "Sarah Johnson", dept: "Engineering", status: "active", session: "2h 45m", activity: 94, screenshots: 12, initials: "SJ", photoUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=150&fit=crop&crop=face" },
+  { id: 2, name: "Mike Chen", dept: "Design", status: "active", session: "3h 10m", activity: 88, screenshots: 15, initials: "MC", photoUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=150&fit=crop&crop=face" },
+  { id: 3, name: "Emma Wilson", dept: "Marketing", status: "break", session: "2h 05m", activity: 72, screenshots: 10, initials: "EW", photoUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&h=150&fit=crop&crop=face" },
+  { id: 4, name: "James Lee", dept: "Engineering", status: "idle", session: "1h 30m", activity: 45, screenshots: 7, initials: "JL", photoUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&h=150&fit=crop&crop=face" },
+  { id: 5, name: "David Kim", dept: "HR", status: "active", session: "3h 55m", activity: 91, screenshots: 18, initials: "DK", photoUrl: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&h=150&fit=crop&crop=face" },
+  { id: 6, name: "Lisa Torres", dept: "Design", status: "active", session: "1h 15m", activity: 87, screenshots: 6, initials: "LT", photoUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&h=150&fit=crop&crop=face" },
 ];
 
 export function LiveMonitoring() {
@@ -271,8 +405,8 @@ export function LiveMonitoring() {
               style={{ background: "var(--card)", border: `1px solid ${emp.status === "idle" ? "rgba(239,68,68,0.3)" : "var(--border)"}` }}>
               <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl gradient-primary flex items-center justify-center relative">
-                    <span className="text-white" style={{ fontSize: "0.75rem", fontWeight: 700 }}>{emp.initials}</span>
+                  <div className="w-10 h-10 rounded-xl flex-shrink-0 relative">
+                    <img src={emp.photoUrl} alt={emp.name} className="w-10 h-10 rounded-xl object-cover" />
                     <div className="absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2"
                       style={{ background: statusConfig.color, borderColor: "var(--card)" }} />
                   </div>
@@ -501,7 +635,7 @@ export function AttendanceManagement() {
       {/* Employee Productivity Score and Performance Summary (Moved from Productivity page) */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Employee Productivity Score</h3>
+          <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Top 5 Employee Productivity Score</h3>
           <ResponsiveContainer width="100%" height={230}>
             <BarChart data={empProdData} layout="vertical">
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
@@ -520,9 +654,7 @@ export function AttendanceManagement() {
           <div className="space-y-3">
             {empProdData.map(({ name, score, tasks }) => (
               <div key={name} className="flex items-center gap-3 py-2" style={{ borderBottom: "1px solid var(--border)" }}>
-                <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
-                  <span className="text-white" style={{ fontSize: "0.6rem", fontWeight: 700 }}>{name.split(" ").map(n => n[0]).join("")}</span>
-                </div>
+                <img src={getEmployeePhoto(name)} alt={name} className="w-7 h-7 rounded-lg object-cover flex-shrink-0" />
                 <div className="flex-1">
                   <div className="flex justify-between mb-1">
                     <span style={{ fontSize: "0.8rem", fontWeight: 500 }}>{name}</span>
@@ -595,9 +727,7 @@ export function ProductivityMonitoring() {
           <div className="space-y-3">
             {empProdData.map(({ name, score, tasks }) => (
               <div key={name} className="flex items-center gap-3 py-2" style={{ borderBottom: "1px solid var(--border)" }}>
-                <div className="w-7 h-7 rounded-lg gradient-primary flex items-center justify-center flex-shrink-0">
-                  <span className="text-white" style={{ fontSize: "0.6rem", fontWeight: 700 }}>{name.split(" ").map(n => n[0]).join("")}</span>
-                </div>
+                <img src={getEmployeePhoto(name)} alt={name} className="w-7 h-7 rounded-lg object-cover flex-shrink-0" />
                 <div className="flex-1">
                   <div className="flex justify-between mb-1">
                     <span style={{ fontSize: "0.8rem", fontWeight: 500 }}>{name}</span>
@@ -627,11 +757,13 @@ const mgrScreenshots = Array.from({ length: 12 }, (_, i) => ({
 }));
 
 export function ScreenshotMonitoring() {
+  const [screenshotsList, setScreenshotsList] = useState(mgrScreenshots);
   const [preview, setPreview] = useState<number | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
   const [timeFilter, setTimeFilter] = useState("1m");
 
-  const filteredScreenshots = mgrScreenshots.filter((ss) => {
+  const filteredScreenshots = screenshotsList.filter((ss) => {
     const matchesSearch = ss.employee.toLowerCase().includes(searchTerm.toLowerCase());
     if (timeFilter === "today") {
       return matchesSearch && ss.id <= 4;
@@ -710,9 +842,10 @@ export function ScreenshotMonitoring() {
                   style={{ background: "rgba(0,0,0,0.4)" }}>
                   <Eye className="w-7 h-7 text-white" />
                 </div>
-                <div className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-white"
+                <div className="absolute top-2 left-2 flex items-center gap-1.5 px-1.5 py-0.5 rounded text-white"
                   style={{ background: "rgba(0,0,0,0.6)", fontSize: "0.6rem" }}>
-                  {ss.employee.split(" ")[0]}
+                  <img src={getEmployeePhoto(ss.employee)} alt={ss.employee} className="w-4 h-4 rounded-full object-cover" />
+                  <span>{ss.employee.split(" ")[0]}</span>
                 </div>
               </div>
               <div className="px-3 py-2" style={{ background: "var(--card)" }}>
@@ -741,9 +874,51 @@ export function ScreenshotMonitoring() {
               </div>
               <div className="flex gap-2">
                 <button className="p-2 rounded-xl" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}><Download className="w-4 h-4" /></button>
-                <button className="p-2 rounded-xl" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}><Trash2 className="w-4 h-4" /></button>
+                 <button onClick={(e) => {
+                  e.stopPropagation();
+                  setDeleteConfirmId(preview);
+                }} className="p-2 rounded-xl" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}><Trash2 className="w-4 h-4" /></button>
                 <button onClick={() => setPreview(null)} className="p-2 rounded-xl" style={{ background: "var(--muted)" }}>✕</button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setDeleteConfirmId(null)}>
+          <div className="rounded-2xl w-full max-w-md p-6 relative animate-fade-in" style={{ background: "var(--card)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setDeleteConfirmId(null)} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">✕</button>
+            
+            <div className="flex gap-4 items-start mt-2">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(239,68,68,0.1)" }}>
+                <AlertCircle className="w-6 h-6" style={{ color: "#ef4444" }} />
+              </div>
+              <div className="space-y-1">
+                <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Delete Screenshot</h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>
+                  Are you sure you want to delete this screenshot? All associated screenshot information will be permanently removed.
+                </p>
+                <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", opacity: 0.8 }}>
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 500, color: "var(--foreground)" }}>
+                No, Cancel
+              </button>
+              <button onClick={() => {
+                if (deleteConfirmId !== null) {
+                  setScreenshotsList(screenshotsList.filter(ss => ss.id !== deleteConfirmId));
+                  setDeleteConfirmId(null);
+                  setPreview(null);
+                }
+              }} className="px-4 py-2 rounded-xl text-white" style={{ background: "#ef4444", fontSize: "0.875rem", fontWeight: 600 }}>
+                Yes, Delete
+              </button>
             </div>
           </div>
         </div>
@@ -763,7 +938,9 @@ const mgrRecordings = [
 ];
 
 export function RecordingMonitoring() {
+  const [recordingsList, setRecordingsList] = useState(mgrRecordings);
   const [playing, setPlaying] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -789,7 +966,7 @@ export function RecordingMonitoring() {
           <h3 style={{ fontWeight: 600 }}>Recording List</h3>
         </div>
         <div className="divide-y" style={{ borderColor: "var(--border)" }}>
-          {mgrRecordings.map((rec) => (
+          {recordingsList.map((rec) => (
             <div key={rec.id} className="p-5 flex items-center gap-4">
               <div className="w-16 h-12 rounded-xl flex items-center justify-center flex-shrink-0 relative"
                 style={{ background: `hsl(${rec.id * 50}, 50%, 25%)` }}>
@@ -815,7 +992,8 @@ export function RecordingMonitoring() {
                 <button className="p-2 rounded-xl" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
                   <Download className="w-4 h-4" />
                 </button>
-                <button className="p-2 rounded-xl" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
+                <button onClick={() => setDeleteConfirmId(rec.id)}
+                  className="p-2 rounded-xl" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -823,6 +1001,44 @@ export function RecordingMonitoring() {
           ))}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteConfirmId !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setDeleteConfirmId(null)}>
+          <div className="rounded-2xl w-full max-w-md p-6 relative animate-fade-in" style={{ background: "var(--card)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setDeleteConfirmId(null)} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">✕</button>
+            
+            <div className="flex gap-4 items-start mt-2">
+              <div className="w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0" style={{ background: "rgba(239,68,68,0.1)" }}>
+                <AlertCircle className="w-6 h-6" style={{ color: "#ef4444" }} />
+              </div>
+              <div className="space-y-1">
+                <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Delete Recording</h3>
+                <p style={{ fontSize: "0.85rem", color: "var(--muted-foreground)", lineHeight: 1.4 }}>
+                  Are you sure you want to delete this recording? All associated recording information will be permanently removed.
+                </p>
+                <p style={{ fontSize: "0.75rem", color: "var(--muted-foreground)", opacity: 0.8 }}>
+                  This action cannot be undone.
+                </p>
+              </div>
+            </div>
+            
+            <div className="flex justify-end gap-3 mt-6">
+              <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 500, color: "var(--foreground)" }}>
+                No, Cancel
+              </button>
+              <button onClick={() => {
+                if (deleteConfirmId !== null) {
+                  setRecordingsList(recordingsList.filter(r => r.id !== deleteConfirmId));
+                  setDeleteConfirmId(null);
+                }
+              }} className="px-4 py-2 rounded-xl text-white" style={{ background: "#ef4444", fontSize: "0.875rem", fontWeight: 600 }}>
+                Yes, Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -1090,7 +1306,7 @@ export function ManagerSettings() {
           </>
         )}
 
-        {(activeTab === "permissions" || activeTab === "notifications" || activeTab === "recording") && (
+        {(activeTab === "permissions" || activeTab === "recording") && (
           <div className="space-y-4">
             <h3 style={{ fontWeight: 700 }}>{tabs.find(t => t.id === activeTab)?.label} Settings</h3>
             {Array.from({ length: 5 }).map((_, i) => (
@@ -1104,6 +1320,79 @@ export function ManagerSettings() {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {activeTab === "notifications" && (
+          <div className="space-y-6">
+            <h3 style={{ fontWeight: 700 }}>Notifications Settings</h3>
+            
+            <div className="p-5 rounded-2xl space-y-4" style={{ background: "var(--muted)" }}>
+              <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>Test Toast Notifications</div>
+              <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>
+                Click these buttons to test the styled shadcn sonner toast notifications.
+              </p>
+              
+              <div className="flex flex-wrap gap-2.5 mt-2">
+                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--foreground)" }}
+                  onClick={() => toast("Event has been created")}>
+                  Default
+                </button>
+                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: "var(--success)", color: "var(--success-foreground)" }}
+                  onClick={() => toast.success("Event has been created")}>
+                  Success
+                </button>
+                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: "var(--primary)", color: "white" }}
+                  onClick={() => toast.info("Be at the area 10 minutes before the event time")}>
+                  Info
+                </button>
+                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: "var(--warning)", color: "var(--warning-foreground)" }}
+                  onClick={() => toast.warning("Event start time cannot be earlier than 8am")}>
+                  Warning
+                </button>
+                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: "var(--destructive)", color: "var(--destructive-foreground)" }}
+                  onClick={() => toast.error("Event has not been created")}>
+                  Error
+                </button>
+                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
+                  style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--foreground)" }}
+                  onClick={() => {
+                    toast.promise<{ name: string }>(
+                      () =>
+                        new Promise((resolve) =>
+                          setTimeout(() => resolve({ name: "Event" }), 2000)
+                        ),
+                      {
+                        loading: "Loading...",
+                        success: (data) => `${data.name} has been created`,
+                        error: "Error",
+                      }
+                    )
+                  }}>
+                  Promise
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
+              <h4 style={{ fontWeight: 600, fontSize: "0.9rem" }}>Alert Preferences</h4>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                  <div>
+                    <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>Option {i + 1}</div>
+                    <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Configuration for this feature</div>
+                  </div>
+                  <div className="w-11 h-6 rounded-full cursor-pointer" style={{ background: i % 2 === 0 ? "var(--primary)" : "var(--muted)", padding: "2px" }}>
+                    <div className="w-5 h-5 rounded-full bg-white" style={{ transform: i % 2 === 0 ? "translateX(20px)" : "translateX(0)", transition: "transform 0.2s" }} />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -1237,9 +1526,7 @@ export function ApprovalsPage({ role }: { role?: string }) {
                   <tr key={row.id} className="hover:opacity-90 cursor-pointer" style={{ borderBottom: "1px solid var(--border)" }} onClick={() => setSelectedRequest(row)}>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <div className="w-9 h-9 rounded-xl gradient-primary flex items-center justify-center flex-shrink-0">
-                          <span className="text-white" style={{ fontSize: "0.75rem", fontWeight: 700 }}>{row.initials}</span>
-                        </div>
+                        <img src={getEmployeePhoto(row.name)} alt={row.name} className="w-9 h-9 rounded-xl object-cover flex-shrink-0" />
                         <div>
                           <div style={{ fontWeight: 600, fontSize: "0.875rem" }}>{row.name}</div>
                           <div style={{ fontSize: "0.75rem", color: "var(--muted-foreground)" }}>{row.email}</div>
@@ -1277,12 +1564,10 @@ export function ApprovalsPage({ role }: { role?: string }) {
               {/* Drawer Header */}
               <div className="flex justify-between items-start mb-6">
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-                    <span className="text-white font-bold text-sm">{selectedRequest.initials}</span>
-                  </div>
+                  <img src={getEmployeePhoto(selectedRequest.name)} alt={selectedRequest.name} className="w-12 h-12 rounded-xl object-cover" />
                   <div>
                     <h3 className="font-bold text-base">{selectedRequest.name}</h3>
-                    <p className="text-xs text-muted-foreground">HR Bridge</p>
+                    <p className="text-xs text-muted-foreground">Bright Link</p>
                   </div>
                 </div>
                 <button onClick={() => setSelectedRequest(null)} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground">
