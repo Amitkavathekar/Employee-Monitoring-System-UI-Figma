@@ -129,17 +129,17 @@ export default function App() {
           "--normal-text": "var(--card-foreground)",
           "--normal-border": "var(--border)",
           
-          "--success-bg": "rgba(16, 185, 129, 0.12)",
-          "--success-text": "#10b981",
-          "--success-border": "rgba(16, 185, 129, 0.25)",
+          "--success-bg": isDark ? "#064e3b" : "#d1fae5",
+          "--success-text": isDark ? "#34d399" : "#065f46",
+          "--success-border": isDark ? "#065f46" : "#a7f3d0",
           
-          "--info-bg": "rgba(99, 102, 241, 0.12)",
-          "--info-text": "var(--primary)",
-          "--info-border": "rgba(99, 102, 241, 0.25)",
+          "--info-bg": isDark ? "#1e1b4b" : "#e0e7ff",
+          "--info-text": isDark ? "#818cf8" : "#3730a3",
+          "--info-border": isDark ? "#312e81" : "#c7d2fe",
           
-          "--error-bg": "rgba(239, 68, 68, 0.12)",
-          "--error-text": "#ef4444",
-          "--error-border": "rgba(239, 68, 68, 0.25)",
+          "--error-bg": isDark ? "#450a0a" : "#fee2e2",
+          "--error-text": isDark ? "#fca5a5" : "#991b1b",
+          "--error-border": isDark ? "#7f1d1d" : "#fecaca",
         } as React.CSSProperties}
       />
       {appState === "auth" ? (
