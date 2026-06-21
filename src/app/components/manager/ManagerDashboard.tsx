@@ -1,12 +1,14 @@
 import { useState, useEffect } from "react";
 import {
   Users, CheckCircle, XCircle, Wifi, TrendingUp, Clock, Camera, Video,
-  ArrowUp, ArrowDown, Activity, Bell, ChevronDown, Monitor, Coffee, Play
+  ArrowUp, ArrowDown, Activity, Bell, ChevronDown, Monitor, Coffee, Play,
+  Pause, Plus, Send, Briefcase, Calendar
 } from "lucide-react";
 import {
   AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from "recharts";
+import { toast } from "sonner";
 
 const weeklyAttendance = [
   { day: "Mon", present: 45, absent: 5, late: 3 },

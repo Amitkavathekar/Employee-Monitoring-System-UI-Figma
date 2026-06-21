@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import {
   CheckCircle, Activity, Coffee, Monitor, ArrowUp, ArrowDown, Play,
-  LogIn, LogOut, ChevronDown, Bell, Users, XCircle
+  LogIn, LogOut, ChevronDown, Bell, Users, XCircle, Clock, Pause, Briefcase, Calendar
 } from "lucide-react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 

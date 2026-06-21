@@ -3,8 +3,11 @@ import { AuthScreens } from "./components/auth/AuthScreens";
 import { Sidebar } from "./components/layout/Sidebar";
 import { TopBar } from "./components/layout/TopBar";
 import { Toaster, toast } from "sonner";
+import { LogOut } from "lucide-react";
 import { EmployeeDashboard } from "./components/employee/EmployeeDashboard";
 import { EmployeeAttendance } from "./components/employee/EmployeeAttendance";
+import { EmployeeTasks } from "./components/employee/EmployeeTasks";
+import { ManagerTasks } from "./components/manager/ManagerTasks";
 import {
   WorkSession,
   EmployeeProductivity,
@@ -42,6 +45,7 @@ type Role = "admin" | "manager" | "employee";
 
 const employeePages: Record<string, any> = {
   dashboard: EmployeeDashboard,
+  tasks: EmployeeTasks,
   attendance: EmployeeAttendance,
   productivity: EmployeeProductivity,
   profile: EmployeeProfile,
@@ -50,6 +54,7 @@ const employeePages: Record<string, any> = {
 
 const managerPages: Record<string, React.ComponentType> = {
   dashboard: ManagerDashboard,
+  tasks: ManagerTasks,
   employees: EmployeeManagement,
   attendance: AttendanceManagement,
   activity: ManagerActivity,
@@ -78,6 +83,7 @@ export default function App() {
   const [isDark, setIsDark] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [selectedNotificationId, setSelectedNotificationId] = useState<number | null>(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [userPhoto, setUserPhoto] = useState<string>(() => {
     return localStorage.getItem("employeePhoto") || "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&h=150&fit=crop&crop=face";
   });
@@ -154,7 +160,7 @@ export default function App() {
               role={role}
               activePage={activePage}
               onNavigate={handleNavigate}
-              onLogout={handleLogout}
+              onLogout={() => setShowLogoutConfirm(true)}
               isDark={isDark}
               userPhoto={role === "employee" ? userPhoto : undefined}
             />
@@ -168,7 +174,7 @@ export default function App() {
                   role={role}
                   activePage={activePage}
                   onNavigate={(page) => { handleNavigate(page); setMobileMenuOpen(false); }}
-                  onLogout={() => { handleLogout(); setMobileMenuOpen(false); }}
+                  onLogout={() => { setShowLogoutConfirm(true); setMobileMenuOpen(false); }}
                   isDark={isDark}
                   userPhoto={role === "employee" ? userPhoto : undefined}
                 />
@@ -183,7 +189,7 @@ export default function App() {
               isDark={isDark}
               onToggleDark={() => setIsDark(!isDark)}
               pageTitle={activePage}
-              onLogout={handleLogout}
+              onLogout={() => setShowLogoutConfirm(true)}
               onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
               userPhoto={role === "employee" ? userPhoto : undefined}
               onNotificationClick={(id) => {
@@ -201,6 +207,39 @@ export default function App() {
                 setSelectedNotificationId={setSelectedNotificationId}
               />
             </main>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setShowLogoutConfirm(false)}>
+          <div className="relative w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-scale-up" style={{ background: "var(--card)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
+            <button onClick={() => setShowLogoutConfirm(false)} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">✕</button>
+            <div className="flex flex-col gap-4 text-center">
+              <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center bg-red-500/10 text-red-500">
+                <LogOut className="w-6 h-6" />
+              </div>
+              <div>
+                <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>Logout</h3>
+                <p className="text-xs text-muted-foreground mt-1">Are you sure you want to log out of your session?</p>
+              </div>
+            </div>
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setShowLogoutConfirm(false)} className="flex-1 px-4 py-2 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 500, color: "var(--foreground)" }}>
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowLogoutConfirm(false);
+                  handleLogout();
+                }}
+                className="flex-1 px-4 py-2 rounded-xl text-white font-bold gradient-danger"
+                style={{ fontSize: "0.875rem" }}
+              >
+                Yes, Logout
+              </button>
+            </div>
           </div>
         </div>
       )}

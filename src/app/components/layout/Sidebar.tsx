@@ -3,7 +3,7 @@ import {
   LayoutDashboard, Users, Clock, BarChart3, Camera, Video,
   Activity, Bell, Settings, LogOut, User, FileText,
   Radio, ChevronLeft, ChevronRight, Monitor, TrendingUp, Shield,
-  Globe, Laptop, CheckSquare, Building
+  Globe, Laptop, CheckSquare, Building, Briefcase
 } from "lucide-react";
 import { Tooltip, TooltipTrigger, TooltipContent, TooltipProvider } from "../ui/tooltip";
 
@@ -20,6 +20,7 @@ interface SidebarProps {
 
 const managerNav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "tasks", label: "Task Tracker", icon: Briefcase },
   { id: "employees", label: "Employees", icon: Users },
   { id: "attendance", label: "Attendance", icon: Clock },
   { id: "activity", label: "Activity", icon: Activity },
@@ -32,6 +33,7 @@ const managerNav = [
 
 const employeeNav = [
   { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { id: "tasks", label: "Task Tracker", icon: Briefcase },
   { id: "attendance", label: "Attendance", icon: Clock },
   { id: "productivity", label: "Productivity", icon: BarChart3 },
   { id: "profile", label: "Profile", icon: User },
