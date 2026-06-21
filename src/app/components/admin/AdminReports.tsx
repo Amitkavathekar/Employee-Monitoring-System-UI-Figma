@@ -49,6 +49,28 @@ export function AdminReports() {
   const [exportDept, setExportDept] = useState("All Departments");
   const [exporting, setExporting] = useState(false);
 
+  // Custom date states
+  const [startDate, setStartDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 7);
+    return d.toISOString().split("T")[0];
+  });
+  const [endDate, setEndDate] = useState(() => new Date().toISOString().split("T")[0]);
+
+  const triggerDownload = (report: Report) => {
+    const content = `Report Name: ${report.name}\nReport Type: ${report.type}\nDepartment: ${report.department}\nDate Generated: ${report.generated}\nSize: ${report.size}\nFormat: ${report.format}\nStatus: ${report.status}\n\nDisclaimer: This is a generated mock workforce analytics dataset for demonstration.`;
+    const mimeType = report.format === "PDF" ? "application/pdf" : "application/vnd.ms-excel";
+    const blob = new Blob([content], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${report.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}.${report.format === "PDF" ? "pdf" : "xlsx"}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`Downloaded: ${report.name}.${report.format === "PDF" ? "pdf" : "xlsx"}`);
+  };
+
   const handleExportSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setExporting(true);
@@ -57,7 +79,7 @@ export function AdminReports() {
     setTimeout(() => {
       const newReport: Report = {
         id: Date.now(),
-        name: `${exportType.replace(" Reports", "").replace(" Summary", "")} Report — ${exportDept}`,
+        name: `${exportType.replace(" Reports", "").replace(" Summary", "")} (${startDate} to ${endDate}) — ${exportDept}`,
         type: exportType,
         department: exportDept,
         generated: "Just Now",
@@ -67,6 +89,7 @@ export function AdminReports() {
       };
       setReports([newReport, ...reports]);
       setExporting(false);
+      toast.success("Custom report generated successfully!");
     }, 1500);
   };
 
@@ -114,7 +137,7 @@ export function AdminReports() {
           </div>
         </div>
 
-        <form onSubmit={handleExportSubmit} className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+        <form onSubmit={handleExportSubmit} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 items-end">
           <div>
             <label className="block mb-1.5 text-xs font-semibold text-muted-foreground">Report Type</label>
             <select
@@ -147,6 +170,28 @@ export function AdminReports() {
               <option value="Marketing">Marketing</option>
               <option value="Support">Support</option>
             </select>
+          </div>
+
+          <div>
+            <label className="block mb-1.5 text-xs font-semibold text-muted-foreground">Start Date</label>
+            <input
+              type="date"
+              value={startDate}
+              onChange={e => setStartDate(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl outline-none"
+              style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem", colorScheme: "dark" }}
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1.5 text-xs font-semibold text-muted-foreground">End Date</label>
+            <input
+              type="date"
+              value={endDate}
+              onChange={e => setEndDate(e.target.value)}
+              className="w-full px-3 py-2 rounded-xl outline-none"
+              style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.85rem", colorScheme: "dark" }}
+            />
           </div>
 
           <div>
@@ -276,8 +321,12 @@ export function AdminReports() {
                         style={{ background: "var(--muted)", color: "var(--foreground)" }}>
                         <Eye className="w-3.5 h-3.5" />
                       </button>
-                      <button className="p-1.5 rounded-lg hover:bg-neutral-800 transition-colors"
-                        style={{ background: "var(--muted)", color: "var(--foreground)" }}>
+                      <button
+                        onClick={() => triggerDownload(report)}
+                        className="p-1.5 rounded-lg hover:bg-neutral-800 transition-colors active:scale-95 disabled:opacity-50"
+                        style={{ background: "var(--muted)", color: "var(--foreground)" }}
+                        disabled={report.status !== "Ready"}
+                      >
                         <Download className="w-3.5 h-3.5" />
                       </button>
                     </div>
