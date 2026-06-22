@@ -431,7 +431,8 @@ export function EmployeeTasks() {
           ...t,
           timeSpent: t.timeSpent + elapsed,
           timerStartedAt: undefined,
-          status: "completed" as const
+          status: "completed" as const,
+          completedAt: new Date().toISOString()
         };
       }
       return t;

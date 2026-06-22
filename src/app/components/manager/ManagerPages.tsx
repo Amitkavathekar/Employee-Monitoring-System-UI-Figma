@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Users, Search, Plus, Edit2, Trash2, MoreVertical, CheckCircle,
   XCircle, AlertCircle, Wifi, WifiOff, Clock, Download, Filter,
@@ -520,6 +520,31 @@ const monthlyAttendance = [
 export function AttendanceManagement() {
   const [filter, setFilter] = useState("all");
   const [timeRange, setTimeRange] = useState<"1m" | "6m" | "1y">("1m");
+  const [selectedDate, setSelectedDate] = useState("2026-06-13");
+
+  const getFormattedDate = (dateStr: string) => {
+    try {
+      const parts = dateStr.split("-");
+      if (parts.length === 3) {
+        const year = parseInt(parts[0]);
+        const month = parseInt(parts[1]) - 1;
+        const day = parseInt(parts[2]);
+        const d = new Date(year, month, day);
+        return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+      }
+    } catch (e) {
+      console.error(e);
+    }
+    return "";
+  };
+
+  const formattedDate = getFormattedDate(selectedDate);
+
+  const filteredRecords = attendanceRecords.filter(r => {
+    const matchStatus = filter === "all" || r.status === filter;
+    const matchDate = r.date === formattedDate;
+    return matchStatus && matchDate;
+  });
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -560,7 +585,16 @@ export function AttendanceManagement() {
       {/* Table */}
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="p-5 flex items-center justify-between flex-wrap gap-4" style={{ borderBottom: "1px solid var(--border)" }}>
-          <h3 style={{ fontWeight: 600 }}>Attendance Records — Jun 13, 2026</h3>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h3 style={{ fontWeight: 600 }}>Attendance Records — {formattedDate || "Select Date"}</h3>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="text-xs p-1.5 rounded-xl bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary font-medium"
+              style={{ colorScheme: "dark" }}
+            />
+          </div>
           <div className="flex gap-3 items-center flex-wrap">
             {/* Time range selector */}
             <div className="flex rounded-xl overflow-hidden p-1 border border-border gap-1" style={{ background: "var(--input-background)" }}>
@@ -587,11 +621,6 @@ export function AttendanceManagement() {
               <option value="absent">Absent</option>
               <option value="late">Late</option>
             </select>
-
-            <button className="flex items-center gap-2 px-3 py-2 rounded-xl text-white"
-              style={{ background: "var(--primary)", fontSize: "0.8rem", fontWeight: 500 }}>
-              <Download className="w-4 h-4" /> Export
-            </button>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -604,29 +633,37 @@ export function AttendanceManagement() {
               </tr>
             </thead>
             <tbody>
-              {attendanceRecords.filter(r => filter === "all" || r.status === filter).map((row, i) => {
-                const sc = statusColors2[row.status] || { color: "#6b7280", bg: "rgba(0,0,0,0.05)" };
-                return (
-                  <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
-                    <td className="px-5 py-3.5" style={{ fontWeight: 600, fontSize: "0.875rem" }}>{row.emp}</td>
-                    <td className="px-5 py-3.5" style={{ fontSize: "0.875rem" }}>{row.dept}</td>
-                    <td className="px-5 py-3.5" style={{ fontSize: "0.875rem" }}>{row.date}</td>
-                    <td className="px-5 py-3.5" style={{ fontSize: "0.875rem", fontFamily: "JetBrains Mono, monospace" }}>{row.checkIn}</td>
-                    <td className="px-5 py-3.5" style={{ fontSize: "0.875rem", fontFamily: "JetBrains Mono, monospace" }}>{row.checkOut}</td>
-                    <td className="px-5 py-3.5" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{row.hours}</td>
-                    <td className="px-5 py-3.5">
-                      <span className="px-2 py-1 rounded-lg capitalize"
-                        style={{ background: sc.bg, color: sc.color, fontSize: "0.75rem", fontWeight: 600 }}>
-                        {row.status.replace("-", " ")}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3.5">
-                      <button className="px-2.5 py-1 rounded-lg text-white"
-                        style={{ background: "var(--primary)", fontSize: "0.7rem", fontWeight: 500 }}>Approve</button>
-                    </td>
-                  </tr>
-                );
-              })}
+              {filteredRecords.length === 0 ? (
+                <tr>
+                  <td colSpan={8} className="px-5 py-8 text-center text-sm text-muted-foreground">
+                    No attendance records found for this date.
+                  </td>
+                </tr>
+              ) : (
+                filteredRecords.map((row, i) => {
+                  const sc = statusColors2[row.status] || { color: "#6b7280", bg: "rgba(0,0,0,0.05)" };
+                  return (
+                    <tr key={i} style={{ borderBottom: "1px solid var(--border)" }}>
+                      <td className="px-5 py-3.5" style={{ fontWeight: 600, fontSize: "0.875rem" }}>{row.emp}</td>
+                      <td className="px-5 py-3.5" style={{ fontSize: "0.875rem" }}>{row.dept}</td>
+                      <td className="px-5 py-3.5" style={{ fontSize: "0.875rem" }}>{row.date}</td>
+                      <td className="px-5 py-3.5" style={{ fontSize: "0.875rem", fontFamily: "JetBrains Mono, monospace" }}>{row.checkIn}</td>
+                      <td className="px-5 py-3.5" style={{ fontSize: "0.875rem", fontFamily: "JetBrains Mono, monospace" }}>{row.checkOut}</td>
+                      <td className="px-5 py-3.5" style={{ fontSize: "0.875rem", fontWeight: 600 }}>{row.hours}</td>
+                      <td className="px-5 py-3.5">
+                        <span className="px-2 py-1 rounded-lg capitalize"
+                          style={{ background: sc.bg, color: sc.color, fontSize: "0.75rem", fontWeight: 600 }}>
+                          {row.status.replace("-", " ")}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <button className="px-2.5 py-1 rounded-lg text-white"
+                          style={{ background: "var(--primary)", fontSize: "0.7rem", fontWeight: 500 }}>Approve</button>
+                      </td>
+                    </tr>
+                  );
+                })
+              )}
             </tbody>
           </table>
         </div>
@@ -932,28 +969,95 @@ export function ScreenshotMonitoring() {
 const mgrRecordings = [
   { id: 1, employee: "Sarah Johnson", date: "Jun 13", duration: "2h 15m", size: "368 MB", status: "completed" },
   { id: 2, employee: "Mike Chen", date: "Jun 13", duration: "1h 45m", size: "289 MB", status: "completed" },
-  { id: 3, employee: "Emma Wilson", date: "Jun 13", duration: "3h 0m", size: "498 MB", status: "active" },
-  { id: 4, employee: "David Kim", date: "Jun 13", duration: "0h 45m", size: "121 MB", status: "active" },
+  { id: 3, employee: "Emma Wilson", date: "Jun 13", duration: "3h 0m", size: "498 MB", status: "completed" },
+  { id: 4, employee: "David Kim", date: "Jun 13", duration: "0h 45m", size: "121 MB", status: "completed" },
   { id: 5, employee: "Lisa Torres", date: "Jun 12", duration: "4h 30m", size: "740 MB", status: "completed" },
 ];
 
 export function RecordingMonitoring() {
-  const [recordingsList, setRecordingsList] = useState(mgrRecordings);
+  const [recordingsList, setRecordingsList] = useState<any[]>(mgrRecordings);
   const [playing, setPlaying] = useState<number | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [selectedEmp, setSelectedEmp] = useState("Sarah Johnson");
+  const [tick, setTick] = useState(0);
+
+  // Trigger live ticking timer every second if there are any active recordings
+  useEffect(() => {
+    const hasActive = recordingsList.some(r => r.status === "active");
+    if (!hasActive) return;
+
+    const interval = setInterval(() => {
+      setTick(t => t + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [recordingsList]);
+
+  const isRecordingActive = recordingsList.some(r => r.employee === selectedEmp && r.status === "active");
+
+  const handleStartRecording = () => {
+    const newRec = {
+      id: Date.now(),
+      employee: selectedEmp,
+      date: new Date().toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+      duration: "0h 0m",
+      size: "0 MB",
+      status: "active",
+      startTime: Date.now()
+    };
+    setRecordingsList(prev => [newRec, ...prev]);
+    toast.success(`Screen recording started for ${selectedEmp}`);
+  };
+
+  const handleStopRecording = () => {
+    const updatedList = recordingsList.map(rec => {
+      if (rec.employee === selectedEmp && rec.status === "active") {
+        const elapsedSeconds = Math.floor((Date.now() - rec.startTime) / 1000);
+        const h = Math.floor(elapsedSeconds / 3600);
+        const m = Math.floor((elapsedSeconds % 3600) / 60);
+        const durationStr = `${h}h ${m}m`;
+        const sizeStr = `${(elapsedSeconds * 0.1).toFixed(1)} MB`;
+        return {
+          ...rec,
+          status: "completed",
+          duration: durationStr,
+          size: sizeStr
+        };
+      }
+      return rec;
+    });
+    setRecordingsList(updatedList);
+    toast.success(`Screen recording stopped for ${selectedEmp}`);
+  };
+
+  const getElapsedDuration = (startTime: number) => {
+    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+    const h = Math.floor(elapsedSeconds / 3600);
+    const m = Math.floor((elapsedSeconds % 3600) / 60);
+    const s = elapsedSeconds % 60;
+    return `${h}h ${m}m ${s}s`;
+  };
+
+  const getElapsedSize = (startTime: number) => {
+    const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+    const mb = (elapsedSeconds * 0.1).toFixed(1);
+    return `${mb} MB`;
+  };
+
+  const activeRecordingsCount = recordingsList.filter(r => r.status === "active").length;
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
+      {/* 4 Cards on Top */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {[
-          { label: "Active Recordings", value: "12", color: "#ef4444" },
-          { label: "Today's Total", value: "48", color: "#6366f1" },
+          { label: "Active Recordings", value: activeRecordingsCount.toString(), color: "#ef4444" },
+          { label: "Today's Total", value: recordingsList.length.toString(), color: "#6366f1" },
           { label: "Total Duration", value: "156h", color: "#06b6d4" },
           { label: "Storage Used", value: "82 GB", color: "#f59e0b" },
         ].map(({ label, value, color }) => (
           <div key={label} className="rounded-2xl p-5" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
             <div className="flex items-center gap-2 mb-2">
-              {label === "Active Recordings" && <div className="w-2 h-2 rounded-full animate-pulse-dot" style={{ background: color }} />}
+              {label === "Active Recordings" && parseInt(value) > 0 && <div className="w-2 h-2 rounded-full animate-pulse-dot" style={{ background: color }} />}
               <span style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{label}</span>
             </div>
             <div style={{ fontSize: "1.8rem", fontWeight: 700, color }}>{value}</div>
@@ -961,44 +1065,90 @@ export function RecordingMonitoring() {
         ))}
       </div>
 
+      {/* Dynamic Screen Recording Controls below cards */}
+      <div className="rounded-2xl p-5 shadow-sm" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <Video className="w-5 h-5 text-indigo-500" /> Start / Stop Screen Recording
+        </h3>
+        <div className="flex flex-wrap items-end gap-4">
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-xs font-semibold text-muted-foreground mb-1">Select Employee</label>
+            <select
+              value={selectedEmp}
+              onChange={(e) => setSelectedEmp(e.target.value)}
+              className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+              style={{ colorScheme: "dark" }}
+            >
+              <option value="Sarah Johnson">Sarah Johnson</option>
+              <option value="Mike Chen">Mike Chen</option>
+              <option value="Emma Wilson">Emma Wilson</option>
+              <option value="James Lee">James Lee</option>
+              <option value="David Kim">David Kim</option>
+              <option value="Lisa Torres">Lisa Torres</option>
+            </select>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleStartRecording}
+              disabled={isRecordingActive}
+              className="px-5 py-2 rounded-lg text-white font-semibold text-xs transition-all flex items-center gap-1.5 gradient-success disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <Play className="w-3.5 h-3.5" /> Start Recording
+            </button>
+            <button
+              onClick={handleStopRecording}
+              disabled={!isRecordingActive}
+              className="px-5 py-2 rounded-lg text-white font-semibold text-xs transition-all flex items-center gap-1.5 bg-red-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            >
+              <Square className="w-3.5 h-3.5" /> Stop Recording
+            </button>
+          </div>
+        </div>
+      </div>
+
       <div className="rounded-2xl overflow-hidden" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
         <div className="p-5" style={{ borderBottom: "1px solid var(--border)" }}>
           <h3 style={{ fontWeight: 600 }}>Recording List</h3>
         </div>
         <div className="divide-y" style={{ borderColor: "var(--border)" }}>
-          {recordingsList.map((rec) => (
-            <div key={rec.id} className="p-5 flex items-center gap-4">
-              <div className="w-16 h-12 rounded-xl flex items-center justify-center flex-shrink-0 relative"
-                style={{ background: `hsl(${rec.id * 50}, 50%, 25%)` }}>
-                <Video className="w-5 h-5 text-white" />
-                {rec.status === "active" && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-pulse-dot" style={{ background: "#ef4444", border: "2px solid var(--card)" }} />
-                )}
+          {recordingsList.map((rec) => {
+            const displayDuration = rec.status === "active" ? getElapsedDuration(rec.startTime) : rec.duration;
+            const displaySize = rec.status === "active" ? getElapsedSize(rec.startTime) : rec.size;
+            
+            return (
+              <div key={rec.id} className="p-5 flex items-center gap-4 animate-fade-in">
+                <div className="w-16 h-12 rounded-xl flex items-center justify-center flex-shrink-0 relative"
+                  style={{ background: `hsl(${rec.id * 50}, 50%, 25%)` }}>
+                  <Video className="w-5 h-5 text-white" />
+                  {rec.status === "active" && (
+                    <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full animate-pulse-dot" style={{ background: "#ef4444", border: "2px solid var(--card)" }} />
+                  )}
+                </div>
+                <div className="flex-1">
+                  <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{rec.employee}</div>
+                  <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{rec.date} · {displaySize}</div>
+                </div>
+                <span className="px-2 py-1 rounded-lg"
+                  style={{ fontSize: "0.75rem", fontWeight: 600, background: rec.status === "active" ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)", color: rec.status === "active" ? "#ef4444" : "#10b981" }}>
+                  {rec.status === "active" ? "● LIVE" : "Completed"}
+                </span>
+                <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)" }}>{displayDuration}</span>
+                <div className="flex gap-2">
+                  <button onClick={() => setPlaying(playing === rec.id ? null : rec.id)}
+                    className="p-2 rounded-xl" style={{ background: "rgba(99,102,241,0.1)", color: "var(--primary)" }}>
+                    {playing === rec.id ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  </button>
+                  <button className="p-2 rounded-xl" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
+                    <Download className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => setDeleteConfirmId(rec.id)}
+                    className="p-2 rounded-xl" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-              <div className="flex-1">
-                <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{rec.employee}</div>
-                <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{rec.date} · {rec.size}</div>
-              </div>
-              <span className="px-2 py-1 rounded-lg"
-                style={{ fontSize: "0.75rem", fontWeight: 600, background: rec.status === "active" ? "rgba(239,68,68,0.1)" : "rgba(16,185,129,0.1)", color: rec.status === "active" ? "#ef4444" : "#10b981" }}>
-                {rec.status === "active" ? "● LIVE" : "Completed"}
-              </span>
-              <span style={{ fontFamily: "JetBrains Mono, monospace", fontSize: "0.875rem", fontWeight: 600, color: "var(--primary)" }}>{rec.duration}</span>
-              <div className="flex gap-2">
-                <button onClick={() => setPlaying(playing === rec.id ? null : rec.id)}
-                  className="p-2 rounded-xl" style={{ background: "rgba(99,102,241,0.1)", color: "var(--primary)" }}>
-                  {playing === rec.id ? <Square className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                </button>
-                <button className="p-2 rounded-xl" style={{ background: "rgba(16,185,129,0.1)", color: "#10b981" }}>
-                  <Download className="w-4 h-4" />
-                </button>
-                <button onClick={() => setDeleteConfirmId(rec.id)}
-                  className="p-2 rounded-xl" style={{ background: "rgba(239,68,68,0.1)", color: "#ef4444" }}>
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

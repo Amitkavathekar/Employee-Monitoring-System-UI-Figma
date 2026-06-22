@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  Briefcase, Calendar, Clock, Plus, Send, AlertTriangle
+  Briefcase, Calendar, Clock, Plus, Send, AlertTriangle, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -253,6 +253,13 @@ export function ManagerTasks() {
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterDate, setFilterDate] = useState("");
 
+  const [currentPage, setCurrentPage] = useState(1);
+
+  // Reset pagination on filter change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterEmployee, filterStatus, filterDate]);
+
   // Sync to localStorage
   useEffect(() => {
     localStorage.setItem("employee_tasks", JSON.stringify(tasks));
@@ -339,6 +346,13 @@ export function ManagerTasks() {
     return matchEmployee && matchStatus && matchDate;
   });
 
+  // Pagination logic
+  const tasksPerPage = 10;
+  const indexOfLastTask = currentPage * tasksPerPage;
+  const indexOfFirstTask = indexOfLastTask - tasksPerPage;
+  const currentTasks = filteredTasks.slice(indexOfFirstTask, indexOfLastTask);
+  const totalPages = Math.ceil(filteredTasks.length / tasksPerPage);
+
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full max-h-[calc(100vh-64px)]">
       {/* Task Management Grid */}
@@ -409,12 +423,12 @@ export function ManagerTasks() {
           </div>
 
           <div className="space-y-3 overflow-y-auto pr-1 flex-1 max-h-[480px]">
-            {filteredTasks.length === 0 ? (
+            {currentTasks.length === 0 ? (
               <div className="text-sm text-muted-foreground p-8 text-center rounded-2xl bg-muted/10 border border-dashed border-border h-full flex items-center justify-center">
                 No matching tasks found.
               </div>
             ) : (
-              filteredTasks.map(task => {
+              currentTasks.map(task => {
                 const isOverdue = task.status !== "completed" && new Date() > new Date(task.eta);
                 const elapsed = task.timeSpent + (task.timerStartedAt ? Math.floor((Date.now() - task.timerStartedAt) / 1000) : 0);
                 const isRunning = !!task.timerStartedAt;
@@ -433,7 +447,7 @@ export function ManagerTasks() {
                   <div key={task.id} className="p-4 rounded-xl border border-border bg-card shadow-sm hover:scale-[1.002] transition-all flex flex-col gap-2 relative overflow-hidden animate-fade-in">
                     {task.status === "in_progress" && <div className="absolute top-0 right-0 h-1 w-full gradient-accent" />}
                     {task.status === "completed" && <div className="absolute top-0 right-0 h-1 w-full gradient-success" />}
-                    
+
                     <div className="flex items-start justify-between">
                       <div>
                         <h4 className="font-semibold text-sm flex items-center gap-2">
@@ -477,17 +491,17 @@ export function ManagerTasks() {
                             <p className="text-muted-foreground leading-relaxed font-medium">{q.description}</p>
                             {q.image && (
                               <div className="mt-2 rounded-lg overflow-hidden border border-border bg-black/20 max-h-[120px] flex items-center justify-center">
-                                <img 
-                                  src={q.image} 
-                                  alt="Query Attachment" 
-                                  className="max-h-[120px] w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity" 
+                                <img
+                                  src={q.image}
+                                  alt="Query Attachment"
+                                  className="max-h-[120px] w-auto object-contain cursor-pointer hover:opacity-90 transition-opacity"
                                   onClick={() => {
                                     const w = window.open();
                                     if (w) {
                                       w.document.write(`<img src="${q.image}" style="max-width:100%; max-height:100vh; display:block; margin:auto;" />`);
                                     }
-                                  }} 
-                                  title="Click to view full image" 
+                                  }}
+                                  title="Click to view full image"
                                 />
                               </div>
                             )}
@@ -540,6 +554,45 @@ export function ManagerTasks() {
               })
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-4 pt-4 border-t border-border flex-wrap gap-2">
+              <span className="text-xs text-muted-foreground font-medium">
+                Showing {indexOfFirstTask + 1}-{Math.min(indexOfLastTask, filteredTasks.length)} of {filteredTasks.length} tasks
+              </span>
+              <div className="flex items-center gap-1">
+                <button
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  className="p-1.5 rounded-lg border border-border text-xs hover:bg-muted/50 disabled:opacity-50 disabled:hover:bg-transparent transition-all flex items-center justify-center min-w-[32px] h-[32px] cursor-pointer"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all min-w-[32px] h-[32px] flex items-center justify-center cursor-pointer"
+                    style={{
+                      background: currentPage === page ? "var(--primary)" : "transparent",
+                      border: currentPage === page ? "1px solid var(--primary)" : "1px solid var(--border)",
+                      color: currentPage === page ? "white" : "var(--foreground)",
+                    }}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  className="p-1.5 rounded-lg border border-border text-xs hover:bg-muted/50 disabled:opacity-50 disabled:hover:bg-transparent transition-all flex items-center justify-center min-w-[32px] h-[32px] cursor-pointer"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Task Assign Form */}
@@ -588,7 +641,7 @@ export function ManagerTasks() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Allocated Duration (in Hours)</label>
+                <label className="block text-xs font-semibold text-muted-foreground mb-1">ETA</label>
                 <input
                   type="number"
                   min="0.1"

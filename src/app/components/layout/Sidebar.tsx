@@ -46,7 +46,6 @@ const adminNav = [
   { id: "employees", label: "Employee Management", icon: Users },
   { id: "policies", label: "Monitoring Policies", icon: Shield },
   { id: "analytics", label: "Analytics", icon: BarChart3 },
-  { id: "approvals", label: "Approvals", icon: CheckSquare },
   { id: "reports", label: "Reports", icon: FileText },
   { id: "settings", label: "Settings", icon: Settings },
 ];
@@ -116,7 +115,7 @@ export function Sidebar({ role, activePage, onNavigate, onLogout, isDark, userPh
                 )}
               </div>
             </TooltipTrigger>
-            <TooltipContent side="right">
+            <TooltipContent side="top">
               <div className="font-semibold text-xs">{role === "admin" ? "Admin" : role === "manager" ? "Alex Morgan" : "John Doe"}</div>
               <div className="text-[10px] opacity-80 capitalize">{role}</div>
             </TooltipContent>
@@ -191,7 +190,7 @@ export function Sidebar({ role, activePage, onNavigate, onLogout, isDark, userPh
                 <TooltipTrigger asChild>
                   {buttonContent}
                 </TooltipTrigger>
-                <TooltipContent side="right">
+                <TooltipContent side="top">
                   {label}
                 </TooltipContent>
               </Tooltip>
@@ -219,7 +218,7 @@ export function Sidebar({ role, activePage, onNavigate, onLogout, isDark, userPh
                 <LogOut className="w-5 h-5 flex-shrink-0" />
               </button>
             </TooltipTrigger>
-            <TooltipContent side="right">
+            <TooltipContent side="top">
               Logout
             </TooltipContent>
           </Tooltip>

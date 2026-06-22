@@ -72,7 +72,6 @@ const adminPages: Record<string, React.ComponentType> = {
   policies: AdminPolicies,
   reports: AdminReports,
   analytics: AdminAnalytics,
-  approvals: ApprovalsPage,
   settings: ManagerSettings,
 };
 

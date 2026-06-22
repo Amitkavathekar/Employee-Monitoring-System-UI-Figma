@@ -147,6 +147,80 @@ const monthlyTrend = [
 
 export function EmployeeProductivity() {
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly">("weekly");
+  const [tasks, setTasks] = useState<any[]>([]);
+
+  useEffect(() => {
+    const loadTasks = () => {
+      const saved = localStorage.getItem("employee_tasks_v3");
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed)) {
+            setTasks(parsed.filter(t => t.employee === "John Doe"));
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    };
+    loadTasks();
+    window.addEventListener("storage", loadTasks);
+    const interval = setInterval(loadTasks, 2000);
+    return () => {
+      window.removeEventListener("storage", loadTasks);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const getTrendData = () => {
+    const completedTasks = tasks.filter((t: any) => t.status === "completed");
+
+    if (period === "daily") {
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date();
+        d.setDate(d.getDate() - i);
+        const dateStr = d.toLocaleDateString("en-US", { month: "short", day: "2-digit" });
+        const count = completedTasks.filter((t: any) => {
+          const taskDate = t.completedAt ? new Date(t.completedAt) : new Date(t.assignedAt);
+          return taskDate.toDateString() === d.toDateString();
+        }).length;
+        days.push({ label: dateStr, score: count });
+      }
+      return days;
+    } else if (period === "weekly") {
+      const weeks = [];
+      for (let i = 3; i >= 0; i--) {
+        const now = Date.now();
+        const start = now - (i + 1) * 7 * 24 * 3600 * 1000;
+        const end = now - i * 7 * 24 * 3600 * 1000;
+        const count = completedTasks.filter((t: any) => {
+          const taskDate = t.completedAt ? new Date(t.completedAt) : new Date(t.assignedAt);
+          const tTime = taskDate.getTime();
+          return tTime >= start && tTime < end;
+        }).length;
+        weeks.push({ label: `Week ${4 - i}`, score: count });
+      }
+      return weeks;
+    } else {
+      const months = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date();
+        d.setMonth(d.getMonth() - i);
+        const monthName = d.toLocaleDateString("en-US", { month: "short" });
+        const count = completedTasks.filter((t: any) => {
+          const taskDate = t.completedAt ? new Date(t.completedAt) : new Date(t.assignedAt);
+          return taskDate.getMonth() === d.getMonth() && taskDate.getFullYear() === d.getFullYear();
+        }).length;
+        months.push({ label: monthName, score: count });
+      }
+      return months;
+    }
+  };
+
+  const trendData = getTrendData();
+  const maxScore = Math.max(...trendData.map(d => d.score), 0);
+  const yDomainMax = Math.max(5, maxScore);
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -219,7 +293,7 @@ export function EmployeeProductivity() {
           <h3 style={{ fontWeight: 600, marginBottom: "1rem" }}>Productivity Trend</h3>
           <div className="flex-1 min-h-0">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={monthlyTrend}>
+              <AreaChart data={trendData}>
                 <defs>
                   <linearGradient id="colorScore" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.4}/>
@@ -227,10 +301,10 @@ export function EmployeeProductivity() {
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                <XAxis dataKey="month" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
-                <YAxis domain={[70, 100]} tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, yDomainMax]} allowDecimals={false} tick={{ fontSize: 12, fill: "var(--muted-foreground)" }} axisLine={false} tickLine={false} />
                 <Tooltip contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: "12px", fontSize: "0.8rem" }} />
-                <Area type="monotone" dataKey="score" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" activeDot={{ r: 6 }} dot={{ r: 4, fill: "var(--primary)", stroke: "var(--card)", strokeWidth: 2 }} />
+                <Area type="monotone" dataKey="score" name="Completed Tasks" stroke="var(--primary)" strokeWidth={3} fillOpacity={1} fill="url(#colorScore)" activeDot={{ r: 6 }} dot={{ r: 4, fill: "var(--primary)", stroke: "var(--card)", strokeWidth: 2 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>

@@ -622,12 +622,11 @@ function RegisterScreen({ onBack, onSuccess }: { onBack: () => void; onSuccess: 
                 <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: "var(--muted-foreground)" }} />
                 <select
                   value={role}
-                  onChange={e => setRole(e.target.value as "employee" | "manager")}
+                  onChange={e => setRole(e.target.value as "employee")}
                   className="w-full pl-11 pr-10 py-3 rounded-xl outline-none appearance-none cursor-pointer"
                   style={{ background: "var(--input-background)", border: "1px solid var(--border)", color: "var(--foreground)", fontSize: "0.875rem" }}
                 >
                   <option value="employee" style={{ background: "var(--background)", color: "var(--foreground)" }}>Employee</option>
-                  <option value="manager" style={{ background: "var(--background)", color: "var(--foreground)" }}>Manager</option>
                 </select>
                 <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none" style={{ color: "var(--muted-foreground)" }} />
               </div>
