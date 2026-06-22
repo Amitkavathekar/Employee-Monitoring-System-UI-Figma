@@ -1,6 +1,6 @@
 import { useState } from "react";
 import {
-  Clock, CheckCircle, TrendingUp, ArrowUp, ArrowDown, Users, Laptop, Globe, Calendar, AlertCircle, BarChart3, PieChartIcon, Activity
+  CheckCircle, TrendingUp, ArrowUp, ArrowDown, Laptop, Globe, BarChart3, PieChartIcon, Activity
 } from "lucide-react";
 import {
   LineChart, Line, PieChart, Pie, Cell, BarChart, Bar,
@@ -59,15 +59,11 @@ export function AdminAnalytics() {
   // Detailed modal or info state for selected analytics category card
   const [selectedCard, setSelectedCard] = useState<string | null>(null);
 
-  // 8 Analytics Categories
+  // 4 Analytics Categories
   const analyticsCategories = [
     { id: "productivity", title: "Productivity Trends", value: "83.8%", sub: "+2.4% vs last week", icon: TrendingUp, color: "#6366f1", detail: "Overall productivity scores remain stable with Engineering leading at 88%. Mid-week sessions show the highest focus scores." },
-    { id: "performers", title: "Top Performing Employees", value: "3 Employees", sub: "Score > 95%", icon: Users, color: "#10b981", detail: "Top spots this week: Amit K. (97%), Sarah L. (96.4%), and Rahul M. (95.8%). Excellence awards calculated on output efficiency." },
     { id: "applications", title: "Most Used Applications", value: "VS Code", sub: "35% of total time", icon: Laptop, color: "#a855f7", detail: "Software development suites represent 60% of all process runtime. IDE usage peaked on Wednesday afternoons." },
     { id: "websites", title: "Most Visited Websites", value: "GitHub", sub: "45 hrs logged", icon: Globe, color: "#06b6d4", detail: "Top domains: github.com, stackoverflow.com, and internal wiki. Restricted website blocks triggered 12 times this week." },
-    { id: "hours", title: "Working Hours Analysis", value: "8.2h Avg", sub: "+0.1h vs last month", icon: Clock, color: "#3b82f6", detail: "Standard hours tracked: 1,420h. Overtime hours reached 85h, mostly concentrated in the systems engineering team." },
-    { id: "attendance", title: "Attendance Patterns", value: "93% Present", sub: "On-time rate: 85%", icon: Calendar, color: "#14b8a6", detail: "Morning logins are within the 15-minute grace period for 92% of the workforce. Late login alerts occurred mostly on Mondays." },
-    { id: "idle", title: "Idle Time Analysis", value: "12.4% Avg", sub: "-1.1% vs last week", icon: AlertCircle, color: "#f97316", detail: "Idle time threshold is 10 minutes. Main idle chunks logged during lunch breaks. Unauthorized idle triggers are down by 8%." },
     { id: "departments", title: "Department Performance", value: "Eng (88%)", sub: "Highest department score", icon: BarChart3, color: "#ec4899", detail: "Engineering: 88%, Sales: 82%, Marketing: 79%, Customer Success: 81%. Department targets achieved across all sectors." },
   ];
 

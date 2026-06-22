@@ -1,7 +1,7 @@
 import { useState } from "react";
 import {
   Building, Search, Plus, Edit2, Trash2, MoreVertical, CheckCircle,
-  XCircle, Shield, User, ChevronLeft, ChevronRight, Clock, AlertCircle
+  XCircle, User, ChevronLeft, ChevronRight, Clock, AlertCircle
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -129,7 +129,7 @@ export function AdminClientManagement() {
 
   // Client Selection State
   const [selectedClientId, setSelectedClientId] = useState<number | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "employees" | "activity" | "documents">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "employees" | "activity">("overview");
 
   // Modal States
   const [editingClient, setEditingClient] = useState<Client | null>(null);
@@ -230,7 +230,7 @@ export function AdminClientManagement() {
           </div>
 
           {/* Tab Navigation */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-6">
             {/* Tab 1: Overview */}
             <button
               onClick={() => setActiveTab("overview")}
@@ -279,23 +279,6 @@ export function AdminClientManagement() {
               </div>
               <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-amber-500/10 text-amber-500 border border-amber-500/20">
                 <Clock className="w-4.5 h-4.5" />
-              </div>
-            </button>
-
-            {/* Tab 4: Documents */}
-            <button
-              onClick={() => setActiveTab("documents")}
-              className="p-4 rounded-2xl flex items-center justify-between text-left transition-all active:scale-95 bg-card hover:opacity-90 shadow-sm"
-              style={{
-                border: activeTab === "documents" ? "2px solid var(--primary)" : "1px solid var(--border)",
-              }}
-            >
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground font-semibold">Documents</span>
-                <span className="text-xs font-bold text-foreground mt-0.5">Files & NDA</span>
-              </div>
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-rose-500/10 text-rose-500 border border-rose-500/20">
-                <Shield className="w-4.5 h-4.5" />
               </div>
             </button>
           </div>
@@ -433,37 +416,6 @@ export function AdminClientManagement() {
             </div>
           )}
 
-          {activeTab === "documents" && (
-            <div className="p-5 rounded-2xl bg-card border border-border mt-6 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between">
-                <h4 className="text-sm font-bold text-foreground">Client Contracts & Documents</h4>
-                <button className="px-3 py-1.5 rounded-lg bg-primary hover:opacity-90 text-white text-xs font-semibold active:scale-95 transition-all">
-                  + Upload File
-                </button>
-              </div>
-              
-              <div className="space-y-2">
-                {[
-                  { name: `Service_Agreement_${selectedClient.companyName.replace(/\s+/g, "_")}.pdf`, size: "2.4 MB", date: "May 15, 2025" },
-                  { name: "Monitoring_Disclosure_Signed.pdf", size: "1.1 MB", date: "May 16, 2025" },
-                  { name: "NDA_Executed.pdf", size: "850 KB", date: "May 12, 2025" }
-                ].map((doc, i) => (
-                  <div key={i} className="p-3 rounded-xl border border-border hover:bg-muted/20 transition-all flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-2.5">
-                      <div className="w-8 h-8 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center">
-                        <Shield className="w-4.5 h-4.5" />
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="text-xs font-semibold text-foreground">{doc.name}</span>
-                        <span className="text-[10px] text-muted-foreground">{doc.size} • Uploaded on {doc.date}</span>
-                      </div>
-                    </div>
-                    <button className="text-xs font-bold text-primary hover:underline">Download</button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
       ) : (
         // Directory Table List

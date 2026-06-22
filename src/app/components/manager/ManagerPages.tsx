@@ -1345,17 +1345,110 @@ export function NotificationsCenter() {
 
 // ─── Settings ─────────────────────────────────────────────────────────────────
 
-export function ManagerSettings() {
+export function ManagerSettings({ role }: { role?: string }) {
   const [activeTab, setActiveTab] = useState("company");
 
   const tabs = [
     { id: "company", label: "Company", icon: Building },
     { id: "permissions", label: "Permissions", icon: Shield },
-    { id: "notifications", label: "Notifications", icon: Bell },
     { id: "screenshot", label: "Screenshots", icon: Camera },
     { id: "recording", label: "Recordings", icon: Video },
     { id: "hours", label: "Work Hours", icon: Clock },
   ];
+
+  const isAdmin = role === "admin";
+
+  const [adminPermissions, setAdminPermissions] = useState({
+    policyCustomization: true,
+    dataDeletion: false,
+    employeeSelfView: true,
+    keystrokeLog: true,
+    adminApproval: false,
+  });
+
+  const [adminRecordings, setAdminRecordings] = useState({
+    continuousScreen: true,
+    audioCapture: false,
+    highDef: true,
+    autoDelete: false,
+    smartPause: true,
+  });
+
+  const [managerPermissions, setManagerPermissions] = useState({
+    teamDashboard: true,
+    clientDetail: false,
+    manualTime: true,
+    taskAssignment: true,
+    screenshotOptOut: false,
+  });
+
+  const [managerRecordings, setManagerRecordings] = useState({
+    liveFeed: true,
+    meetingAudio: false,
+    demandRecording: true,
+    qualityDowngrade: false,
+    activeNotifications: true,
+  });
+
+  const permissionItems = isAdmin
+    ? [
+        { key: "policyCustomization", label: "Manager Policy Access", desc: "Allow managers to customize monitoring policies", val: adminPermissions.policyCustomization },
+        { key: "dataDeletion", label: "Data Deletion Rights", desc: "Allow managers to permanently delete screenshots & recordings", val: adminPermissions.dataDeletion },
+        { key: "employeeSelfView", label: "Employee Self-View", desc: "Allow employees to view their own productivity dashboards & logs", val: adminPermissions.employeeSelfView },
+        { key: "keystrokeLog", label: "Keystroke Log Visibility", desc: "Allow managers to view detailed keystroke frequency statistics", val: adminPermissions.keystrokeLog },
+        { key: "adminApproval", label: "Strict Mode Audits", desc: "Require admin approval for manager policy changes", val: adminPermissions.adminApproval },
+      ]
+    : [
+        { key: "teamDashboard", label: "Team Dashboard Visibility", desc: "Allow team leads to view department productivity trends", val: managerPermissions.teamDashboard },
+        { key: "clientDetail", label: "Client Detail Access", desc: "Allow team members to view client company details", val: managerPermissions.clientDetail },
+        { key: "manualTime", label: "Manual Time Requests", desc: "Allow employees to request manual time entry adjustments", val: managerPermissions.manualTime },
+        { key: "taskAssignment", label: "Task Assignment Permissions", desc: "Allow senior employees to assign tasks to peers", val: managerPermissions.taskAssignment },
+        { key: "screenshotOptOut", label: "Screenshot Opt-Out", desc: "Allow employees to temporarily pause screenshot tracking for private tasks", val: managerPermissions.screenshotOptOut },
+      ];
+
+  const recordingItems = isAdmin
+    ? [
+        { key: "continuousScreen", label: "Continuous Screen Recording", desc: "Enable background screen recording during active work hours", val: adminRecordings.continuousScreen },
+        { key: "audioCapture", label: "Audio Capture", desc: "Enable microphone/audio recording during meetings & calls", val: adminRecordings.audioCapture },
+        { key: "highDef", label: "High Definition Recording", desc: "Store recordings in High Definition (1080p) instead of Standard Definition (720p)", val: adminRecordings.highDef },
+        { key: "autoDelete", label: "Auto-Delete Recordings", desc: "Automatically delete recordings after 30 days", val: adminRecordings.autoDelete },
+        { key: "smartPause", label: "Smart Pause", desc: "Pause recording automatically when user enters a private window or break state", val: adminRecordings.smartPause },
+      ]
+    : [
+        { key: "liveFeed", label: "Live Feed Access", desc: "Allow real-time screen monitoring for active team sessions", val: managerRecordings.liveFeed },
+        { key: "meetingAudio", label: "Meeting Audio Recording", desc: "Record audio only during scheduled calendar call sessions", val: managerRecordings.meetingAudio },
+        { key: "demandRecording", label: "Manager On-Demand Recording", desc: "Allow managers to manually trigger screen recording sessions on-demand", val: managerRecordings.demandRecording },
+        { key: "qualityDowngrade", label: "Quality Downgrade on Low Bandwidth", desc: "Automatically lower video quality for users with unstable connections", val: managerRecordings.qualityDowngrade },
+        { key: "activeNotifications", label: "Recording Active Notifications", desc: "Notify employees on screen when a recording session is active", val: managerRecordings.activeNotifications },
+      ];
+
+  const handlePermissionToggle = (key: string) => {
+    if (isAdmin) {
+      setAdminPermissions(prev => ({
+        ...prev,
+        [key]: !prev[key as keyof typeof adminPermissions]
+      }));
+    } else {
+      setManagerPermissions(prev => ({
+        ...prev,
+        [key]: !prev[key as keyof typeof managerPermissions]
+      }));
+    }
+  };
+
+  const handleRecordingToggle = (key: string) => {
+    if (isAdmin) {
+      setAdminRecordings(prev => ({
+        ...prev,
+        [key]: !prev[key as keyof typeof adminRecordings]
+      }));
+    } else {
+      setManagerRecordings(prev => ({
+        ...prev,
+        [key]: !prev[key as keyof typeof managerRecordings]
+      }));
+    }
+  };
 
   return (
     <div className="p-6 space-y-6 overflow-y-auto h-full">
@@ -1456,93 +1549,45 @@ export function ManagerSettings() {
           </>
         )}
 
-        {(activeTab === "permissions" || activeTab === "recording") && (
+        {activeTab === "permissions" && (
           <div className="space-y-4">
-            <h3 style={{ fontWeight: 700 }}>{tabs.find(t => t.id === activeTab)?.label} Settings</h3>
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+            <h3 style={{ fontWeight: 700 }}>Permissions Settings</h3>
+            {permissionItems.map((item) => (
+              <div key={item.key} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
                 <div>
-                  <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>Setting Option {i + 1}</div>
-                  <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Configuration for this feature</div>
+                  <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>{item.label}</div>
+                  <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{item.desc}</div>
                 </div>
-                <div className="w-11 h-6 rounded-full cursor-pointer" style={{ background: i % 2 === 0 ? "var(--primary)" : "var(--muted)", padding: "2px" }}>
-                  <div className="w-5 h-5 rounded-full bg-white" style={{ transform: i % 2 === 0 ? "translateX(20px)" : "translateX(0)", transition: "transform 0.2s" }} />
+                <div
+                  onClick={() => handlePermissionToggle(item.key)}
+                  className="w-11 h-6 rounded-full cursor-pointer transition-colors"
+                  style={{ background: item.val ? "var(--primary)" : "var(--muted)", padding: "2px" }}
+                >
+                  <div className="w-5 h-5 rounded-full bg-white" style={{ transform: item.val ? "translateX(20px)" : "translateX(0)", transition: "transform 0.2s" }} />
                 </div>
               </div>
             ))}
           </div>
         )}
 
-        {activeTab === "notifications" && (
-          <div className="space-y-6">
-            <h3 style={{ fontWeight: 700 }}>Notifications Settings</h3>
-            
-            <div className="p-5 rounded-2xl space-y-4" style={{ background: "var(--muted)" }}>
-              <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>Test Toast Notifications</div>
-              <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>
-                Click these buttons to test the styled shadcn sonner toast notifications.
-              </p>
-              
-              <div className="flex flex-wrap gap-2.5 mt-2">
-                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
-                  style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-                  onClick={() => toast("Event has been created")}>
-                  Default
-                </button>
-                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
-                  style={{ background: "var(--success)", color: "var(--success-foreground)" }}
-                  onClick={() => toast.success("Event has been created")}>
-                  Success
-                </button>
-                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
-                  style={{ background: "var(--primary)", color: "white" }}
-                  onClick={() => toast.info("Be at the area 10 minutes before the event time")}>
-                  Info
-                </button>
-                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
-                  style={{ background: "var(--warning)", color: "var(--warning-foreground)" }}
-                  onClick={() => toast.warning("Event start time cannot be earlier than 8am")}>
-                  Warning
-                </button>
-                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
-                  style={{ background: "var(--destructive)", color: "var(--destructive-foreground)" }}
-                  onClick={() => toast.error("Event has not been created")}>
-                  Error
-                </button>
-                <button className="px-4 py-2 rounded-xl text-xs font-semibold hover:opacity-90 transition-opacity"
-                  style={{ background: "var(--card)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-                  onClick={() => {
-                    toast.promise<{ name: string }>(
-                      () =>
-                        new Promise((resolve) =>
-                          setTimeout(() => resolve({ name: "Event" }), 2000)
-                        ),
-                      {
-                        loading: "Loading...",
-                        success: (data) => `${data.name} has been created`,
-                        error: "Error",
-                      }
-                    )
-                  }}>
-                  Promise
-                </button>
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-4 border-t" style={{ borderColor: "var(--border)" }}>
-              <h4 style={{ fontWeight: 600, fontSize: "0.9rem" }}>Alert Preferences</h4>
-              {Array.from({ length: 4 }).map((_, i) => (
-                <div key={i} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
-                  <div>
-                    <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>Option {i + 1}</div>
-                    <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>Configuration for this feature</div>
-                  </div>
-                  <div className="w-11 h-6 rounded-full cursor-pointer" style={{ background: i % 2 === 0 ? "var(--primary)" : "var(--muted)", padding: "2px" }}>
-                    <div className="w-5 h-5 rounded-full bg-white" style={{ transform: i % 2 === 0 ? "translateX(20px)" : "translateX(0)", transition: "transform 0.2s" }} />
-                  </div>
+        {activeTab === "recording" && (
+          <div className="space-y-4">
+            <h3 style={{ fontWeight: 700 }}>Recordings Settings</h3>
+            {recordingItems.map((item) => (
+              <div key={item.key} className="flex items-center justify-between py-3" style={{ borderBottom: "1px solid var(--border)" }}>
+                <div>
+                  <div style={{ fontWeight: 500, fontSize: "0.9rem" }}>{item.label}</div>
+                  <div style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{item.desc}</div>
                 </div>
-              ))}
-            </div>
+                <div
+                  onClick={() => handleRecordingToggle(item.key)}
+                  className="w-11 h-6 rounded-full cursor-pointer transition-colors"
+                  style={{ background: item.val ? "var(--primary)" : "var(--muted)", padding: "2px" }}
+                >
+                  <div className="w-5 h-5 rounded-full bg-white" style={{ transform: item.val ? "translateX(20px)" : "translateX(0)", transition: "transform 0.2s" }} />
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
