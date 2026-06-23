@@ -192,6 +192,20 @@ export default function App() {
               onToggleMobileMenu={() => setMobileMenuOpen(!mobileMenuOpen)}
               userPhoto={role === "employee" ? userPhoto : undefined}
               onNotificationClick={(id) => {
+                if (role === "manager") {
+                  const saved = localStorage.getItem("manager_notifications");
+                  if (saved) {
+                    try {
+                      const list = JSON.parse(saved);
+                      const found = list.find((n: any) => n.id === id);
+                      if (found && found.type === "task_approval") {
+                        setActivePage("tasks");
+                        setSelectedNotificationId(id);
+                        return;
+                      }
+                    } catch (e) {}
+                  }
+                }
                 setActivePage("dashboard");
                 setSelectedNotificationId(id);
               }}

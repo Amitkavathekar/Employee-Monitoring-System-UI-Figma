@@ -1296,11 +1296,50 @@ const mgrNotifs = [
 ];
 
 export function NotificationsCenter() {
-  const [notifs, setNotifs] = useState(mgrNotifs);
+  const [notifs, setNotifs] = useState<any[]>(() => {
+    const saved = localStorage.getItem("manager_notifications");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return mgrNotifs;
+  });
   const unread = notifs.filter(n => !n.read).length;
 
+  useEffect(() => {
+    const loadNotifs = () => {
+      const saved = localStorage.getItem("manager_notifications");
+      if (saved) {
+        try {
+          setNotifs(JSON.parse(saved));
+        } catch (e) {}
+      }
+    };
+    window.addEventListener("storage", loadNotifs);
+    const interval = setInterval(loadNotifs, 2000);
+    return () => {
+      window.removeEventListener("storage", loadNotifs);
+      clearInterval(interval);
+    };
+  }, []);
+
   const typeColors: Record<string, string> = {
-    late: "#f59e0b", recording: "#ef4444", employee: "#10b981", alert: "#ef4444", system: "#6366f1",
+    late: "#f59e0b", recording: "#ef4444", employee: "#10b981", alert: "#ef4444", system: "#6366f1", task_approval: "#f59e0b"
+  };
+
+  const handleMarkAllRead = () => {
+    const updated = notifs.map(n => ({ ...n, read: true }));
+    setNotifs(updated);
+    localStorage.setItem("manager_notifications", JSON.stringify(updated));
+    window.dispatchEvent(new Event("storage"));
+  };
+
+  const handleMarkRead = (id: any) => {
+    const updated = notifs.map(n => n.id === id ? { ...n, read: true } : n);
+    setNotifs(updated);
+    localStorage.setItem("manager_notifications", JSON.stringify(updated));
+    window.dispatchEvent(new Event("storage"));
   };
 
   return (
@@ -1311,7 +1350,7 @@ export function NotificationsCenter() {
           <p style={{ fontSize: "0.8rem", color: "var(--muted-foreground)" }}>{unread} unread</p>
         </div>
         <div className="flex gap-3">
-          <button onClick={() => setNotifs(notifs.map(n => ({ ...n, read: true })))}
+          <button onClick={handleMarkAllRead}
             style={{ color: "var(--primary)", fontSize: "0.875rem", fontWeight: 500 }} className="hover:underline">
             Mark all read
           </button>
@@ -1321,7 +1360,7 @@ export function NotificationsCenter() {
       <div className="space-y-3">
         {notifs.map((n) => (
           <div key={n.id}
-            onClick={() => setNotifs(notifs.map(x => x.id === n.id ? { ...x, read: true } : x))}
+            onClick={() => handleMarkRead(n.id)}
             className="rounded-2xl p-4 flex gap-4 cursor-pointer transition-all hover:scale-[1.005]"
             style={{ background: n.read ? "var(--card)" : `${typeColors[n.type] || "#6366f1"}08`, border: `1px solid ${n.read ? "var(--border)" : (typeColors[n.type] || "#6366f1") + "25"}` }}>
             <div className="w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0"

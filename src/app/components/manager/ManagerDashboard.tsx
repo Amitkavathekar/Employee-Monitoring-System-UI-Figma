@@ -101,14 +101,43 @@ function MetricCard({ label, value, sub, icon: Icon, color, trend }: any) {
 }
 
 export function ManagerDashboard({ selectedNotificationId, setSelectedNotificationId }: any) {
-  const [notifs, setNotifs] = useState(mgrNotifs);
+  const [notifs, setNotifs] = useState<any[]>(() => {
+    const saved = localStorage.getItem("manager_notifications");
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {}
+    }
+    return mgrNotifs;
+  });
   const [expandedNotifId, setExpandedNotifId] = useState<number | null>(null);
   const unreadCount = notifs.filter(n => !n.read).length;
 
   useEffect(() => {
+    const loadNotifs = () => {
+      const saved = localStorage.getItem("manager_notifications");
+      if (saved) {
+        try {
+          setNotifs(JSON.parse(saved));
+        } catch (e) {}
+      }
+    };
+    window.addEventListener("storage", loadNotifs);
+    const interval = setInterval(loadNotifs, 2000);
+    return () => {
+      window.removeEventListener("storage", loadNotifs);
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
     if (selectedNotificationId !== null && selectedNotificationId !== undefined) {
       setExpandedNotifId(selectedNotificationId);
-      setNotifs(prev => prev.map(n => n.id === selectedNotificationId ? { ...n, read: true } : n));
+      const updated = notifs.map(n => n.id === selectedNotificationId ? { ...n, read: true } : n);
+      setNotifs(updated);
+      localStorage.setItem("manager_notifications", JSON.stringify(updated));
+      window.dispatchEvent(new Event("storage"));
+      
       setTimeout(() => {
         const element = document.getElementById(`notif-${selectedNotificationId}`);
         if (element) {
@@ -119,14 +148,20 @@ export function ManagerDashboard({ selectedNotificationId, setSelectedNotificati
         setSelectedNotificationId(null);
       }
     }
-  }, [selectedNotificationId, setSelectedNotificationId]);
+  }, [selectedNotificationId, setSelectedNotificationId, notifs]);
 
   const handleMarkRead = (id: number) => {
-    setNotifs(notifs.map(n => n.id === id ? { ...n, read: true } : n));
+    const updated = notifs.map(n => n.id === id ? { ...n, read: true } : n);
+    setNotifs(updated);
+    localStorage.setItem("manager_notifications", JSON.stringify(updated));
+    window.dispatchEvent(new Event("storage"));
   };
 
   const handleMarkAllRead = () => {
-    setNotifs(notifs.map(n => ({ ...n, read: true })));
+    const updated = notifs.map(n => ({ ...n, read: true }));
+    setNotifs(updated);
+    localStorage.setItem("manager_notifications", JSON.stringify(updated));
+    window.dispatchEvent(new Event("storage"));
   };
 
   return (

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Bell, Sun, Moon, Search, ChevronDown, Settings, User, LogOut, Menu } from "lucide-react";
 
 interface TopBarProps {
@@ -24,11 +24,68 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
   const [showNotifications, setShowNotifications] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
   const [searchVal, setSearchVal] = useState("");
-  const unread = notifications.filter(n => !n.read).length;
+
+  const [notifs, setNotifs] = useState<any[]>(() => {
+    if (role === "manager") {
+      const saved = localStorage.getItem("manager_notifications");
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch (e) {}
+      }
+      return [
+        { id: 1, type: "checkin", text: "John Doe checked in at 9:02 AM", time: "2m ago", read: false },
+        { id: 2, type: "alert", text: "Screenshot captured for Emma Wilson", time: "5m ago", read: false },
+        { id: 3, type: "recording", text: "Recording started by Mike Chen", time: "12m ago", read: false },
+        { id: 4, type: "system", text: "System backup completed successfully", time: "1h ago", read: true },
+        { id: 5, type: "alert", text: "Sarah Johnson marked as late", time: "2h ago", read: true },
+      ];
+    }
+    return [
+      { id: 1, type: "checkin", text: "John Doe checked in at 9:02 AM", time: "2m ago", read: false },
+      { id: 2, type: "alert", text: "Screenshot captured for Emma Wilson", time: "5m ago", read: false },
+      { id: 3, type: "recording", text: "Recording started by Mike Chen", time: "12m ago", read: false },
+      { id: 4, type: "system", text: "System backup completed successfully", time: "1h ago", read: true },
+      { id: 5, type: "alert", text: "Sarah Johnson marked as late", time: "2h ago", read: true },
+    ];
+  });
+
+  const unread = notifs.filter(n => !n.read).length;
+
+  useEffect(() => {
+    const handleStorage = () => {
+      if (role === "manager") {
+        const saved = localStorage.getItem("manager_notifications");
+        if (saved) {
+          try {
+            setNotifs(JSON.parse(saved));
+          } catch (e) {}
+        }
+      }
+    };
+    window.addEventListener("storage", handleStorage);
+    const interval = setInterval(handleStorage, 2000);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      clearInterval(interval);
+    };
+  }, [role]);
 
   const handleNotifClick = (nId: number) => {
     if (!onNotificationClick) return;
     setShowNotifications(false);
+
+    if (role === "manager") {
+      const updated = notifs.map(n => n.id === nId ? { ...n, read: true } : n);
+      setNotifs(updated);
+      localStorage.setItem("manager_notifications", JSON.stringify(updated));
+      window.dispatchEvent(new Event("storage"));
+
+      if (typeof nId !== "number" || nId > 5) {
+        onNotificationClick(nId);
+        return;
+      }
+    }
     
     if (role === "employee") {
       const mapping: Record<number, number> = {
@@ -130,7 +187,7 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
                 </span>
               </div>
               <div className="max-h-72 overflow-y-auto">
-                {notifications.map(n => (
+                {notifs.map(n => (
                   <div key={n.id} 
                     onClick={() => handleNotifClick(n.id)}
                     className="px-4 py-3 flex gap-3 hover:opacity-80 transition-opacity cursor-pointer"
@@ -140,7 +197,7 @@ export function TopBar({ role, isDark, onToggleDark, pageTitle, onLogout, onTogg
                       <Bell className="w-4 h-4" style={{ color: n.read ? "var(--muted-foreground)" : "var(--primary)" }} />
                     </div>
                     <div>
-                      <p style={{ fontSize: "0.8rem", lineHeight: 1.4 }}>{n.text}</p>
+                      <p style={{ fontSize: "0.8rem", lineHeight: 1.4 }}>{n.text || n.message || n.title}</p>
                       <p style={{ fontSize: "0.7rem", color: "var(--muted-foreground)", marginTop: "2px" }}>{n.time}</p>
                     </div>
                     {!n.read && <div className="w-2 h-2 rounded-full flex-shrink-0 mt-1.5" style={{ background: "var(--primary)" }} />}

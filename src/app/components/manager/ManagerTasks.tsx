@@ -19,11 +19,12 @@ interface Task {
   assignedAt: string;
   duration: number;
   eta: string;
-  status: "pending" | "in_progress" | "completed";
+  status: "pending" | "in_progress" | "completed" | "completed_pending_approval";
   timeSpent: number;
   timerStartedAt?: number;
   delayReason?: string;
   queries?: TaskQuery[];
+  completionComment?: string;
 }
 
 const DEFAULT_TASKS: Task[] = [
@@ -224,9 +225,9 @@ function formatDuration(seconds: number): string {
   ].filter(Boolean).join(':');
 }
 
-export function ManagerTasks() {
+export function ManagerTasks({ selectedNotificationId, setSelectedNotificationId }: { selectedNotificationId?: number | null; setSelectedNotificationId?: (id: number | null) => void }) {
   const [tasks, setTasks] = useState<Task[]>(() => {
-    const saved = localStorage.getItem("employee_tasks");
+    const saved = localStorage.getItem("employee_tasks_v3");
     if (saved) {
       try {
         const parsed = JSON.parse(saved);
@@ -248,12 +249,37 @@ export function ManagerTasks() {
   const [taskDesc, setTaskDesc] = useState("");
   const [taskDuration, setTaskDuration] = useState("");
 
+  const [activeRightTab, setActiveRightTab] = useState<"assign" | "approvals">("assign");
+
   // Filter states
   const [filterEmployee, setFilterEmployee] = useState("All");
   const [filterStatus, setFilterStatus] = useState("All");
   const [filterDate, setFilterDate] = useState("");
 
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Auto switch to approvals tab when a task approval notification is clicked
+  useEffect(() => {
+    if (selectedNotificationId) {
+      const savedNotifs = localStorage.getItem("manager_notifications");
+      if (savedNotifs) {
+        try {
+          const parsed = JSON.parse(savedNotifs);
+          const found = parsed.find((n: any) => n.id === selectedNotificationId);
+          if (found && found.type === "task_approval") {
+            setActiveRightTab("approvals");
+            // Mark as read
+            const updated = parsed.map((n: any) => n.id === selectedNotificationId ? { ...n, read: true } : n);
+            localStorage.setItem("manager_notifications", JSON.stringify(updated));
+            window.dispatchEvent(new Event("storage"));
+            if (setSelectedNotificationId) {
+              setSelectedNotificationId(null);
+            }
+          }
+        } catch (e) {}
+      }
+    }
+  }, [selectedNotificationId, setSelectedNotificationId]);
 
   // Reset pagination on filter change
   useEffect(() => {
@@ -262,7 +288,7 @@ export function ManagerTasks() {
 
   // Sync to localStorage
   useEffect(() => {
-    localStorage.setItem("employee_tasks", JSON.stringify(tasks));
+    localStorage.setItem("employee_tasks_v3", JSON.stringify(tasks));
   }, [tasks]);
 
   // Handle live timer ticks
@@ -276,7 +302,7 @@ export function ManagerTasks() {
   // Sync from localStorage if employee page updates status
   useEffect(() => {
     const handleStorageChange = () => {
-      const saved = localStorage.getItem("employee_tasks");
+      const saved = localStorage.getItem("employee_tasks_v3");
       if (saved) {
         try {
           const parsed = JSON.parse(saved);
@@ -295,6 +321,68 @@ export function ManagerTasks() {
       clearInterval(pollInterval);
     };
   }, []);
+
+  const approveTask = (taskId: string) => {
+    const updated = tasks.map(item => {
+      if (item.id === taskId) {
+        return {
+          ...item,
+          status: "completed" as const,
+          completedAt: new Date().toISOString()
+        };
+      }
+      return item;
+    });
+    setTasks(updated);
+    
+    // Mark task approval notification as read when approved
+    const savedNotifs = localStorage.getItem("manager_notifications");
+    if (savedNotifs) {
+      try {
+        const parsed = JSON.parse(savedNotifs);
+        const updatedNotifs = parsed.map((n: any) => 
+          n.taskId === taskId ? { ...n, read: true } : n
+        );
+        localStorage.setItem("manager_notifications", JSON.stringify(updatedNotifs));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+    }
+
+    const t = tasks.find(item => item.id === taskId);
+    toast.success(`Approved "${t?.title || 'Task'}"! Task marked completed.`);
+  };
+
+  const rejectTask = (taskId: string) => {
+    const updated = tasks.map(item => {
+      if (item.id === taskId) {
+        return {
+          ...item,
+          status: "pending" as const,
+          completedAt: undefined,
+          timerStartedAt: undefined,
+          completionComment: undefined
+        };
+      }
+      return item;
+    });
+    setTasks(updated);
+
+    // Mark task approval notification as read when rejected
+    const savedNotifs = localStorage.getItem("manager_notifications");
+    if (savedNotifs) {
+      try {
+        const parsed = JSON.parse(savedNotifs);
+        const updatedNotifs = parsed.map((n: any) => 
+          n.taskId === taskId ? { ...n, read: true } : n
+        );
+        localStorage.setItem("manager_notifications", JSON.stringify(updatedNotifs));
+        window.dispatchEvent(new Event("storage"));
+      } catch (e) {}
+    }
+
+    const t = tasks.find(item => item.id === taskId);
+    toast.info(`Rejected "${t?.title || 'Task'}". Sent back to employee.`);
+  };
 
   const handleAssignTask = (e: React.FormEvent) => {
     e.preventDefault();
@@ -441,6 +529,9 @@ export function ManagerTasks() {
                 } else if (task.status === "completed") {
                   statusBadgeColor = "bg-emerald-500/10 text-emerald-500 border border-emerald-500/20";
                   statusText = "Completed";
+                } else if (task.status === "completed_pending_approval") {
+                  statusBadgeColor = "bg-amber-500/10 text-amber-500 border border-amber-500/20";
+                  statusText = "Pending Approval";
                 }
 
                 return (
@@ -534,6 +625,30 @@ export function ManagerTasks() {
                       </div>
                     )}
 
+                    {task.completionComment && (
+                      <div className="p-2 rounded bg-indigo-500/5 border border-indigo-500/10 text-[11px] text-muted-foreground mt-1 animate-fade-in">
+                        <span className="font-bold text-indigo-400 block mb-0.5">Employee Comment:</span>
+                        {task.completionComment}
+                      </div>
+                    )}
+
+                    {task.status === "completed_pending_approval" && (
+                      <div className="flex gap-2.5 mt-2.5 pt-2 border-t border-border animate-fade-in">
+                        <button
+                          onClick={() => approveTask(task.id)}
+                          className="flex-1 py-1 px-3 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all"
+                        >
+                          Accept
+                        </button>
+                        <button
+                          onClick={() => rejectTask(task.id)}
+                          className="flex-1 py-1 px-3 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    )}
+
                     <div className="flex items-center justify-between mt-2 pt-2 border-t border-border text-[11px] text-muted-foreground">
                       <div className="flex items-center gap-1">
                         <Calendar className="w-3.5 h-3.5 text-indigo-500" />
@@ -595,72 +710,146 @@ export function ManagerTasks() {
           )}
         </div>
 
-        {/* Task Assign Form */}
-        <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)" }}>
-          <h3 className="font-semibold mb-4 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-emerald-500" /> Assign New Task
-          </h3>
-          <form onSubmit={handleAssignTask} className="space-y-4 flex-1 flex flex-col justify-between">
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Task Title</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Implement Login Validation"
-                  value={taskTitle}
-                  onChange={(e) => setTaskTitle(e.target.value)}
-                  className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Assign Employee</label>
-                <select
-                  value={assignedEmp}
-                  onChange={(e) => setAssignedEmp(e.target.value)}
-                  className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                  style={{ colorScheme: "dark" }}
-                >
-                  <option value="John Doe">John Doe</option>
-                  <option value="Sarah Johnson">Sarah Johnson</option>
-                  <option value="Mike Chen">Mike Chen</option>
-                  <option value="Emma Wilson">Emma Wilson</option>
-                  <option value="James Lee">James Lee</option>
-                  <option value="Priya Patel">Priya Patel</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">Description</label>
-                <textarea
-                  placeholder="Describe the task instructions..."
-                  value={taskDesc}
-                  onChange={(e) => setTaskDesc(e.target.value)}
-                  className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none h-20"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground mb-1">ETA</label>
-                <input
-                  type="number"
-                  min="0.1"
-                  step="0.1"
-                  placeholder="e.g. 3.5"
-                  value={taskDuration}
-                  onChange={(e) => setTaskDuration(e.target.value)}
-                  className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-                />
-              </div>
-            </div>
-
+        {/* Task Assign Form & Approvals Tab */}
+        <div className="rounded-2xl p-5 flex flex-col" style={{ background: "var(--card)", border: "1px solid var(--border)", minHeight: "450px" }}>
+          {/* Tab Headers */}
+          <div className="flex border-b border-border mb-4 pb-2">
             <button
-              type="submit"
-              className="w-full mt-4 py-2 px-4 rounded-lg text-sm font-semibold gradient-primary text-white flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all"
+              onClick={() => setActiveRightTab("assign")}
+              className={`flex-1 pb-2 text-sm font-semibold border-b-2 transition-all ${
+                activeRightTab === "assign"
+                  ? "border-indigo-500 text-indigo-500"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
             >
-              <Send className="w-4 h-4" /> Assign Task
+              Assign New Task
             </button>
-          </form>
+            <button
+              onClick={() => setActiveRightTab("approvals")}
+              className={`flex-1 pb-2 text-sm font-semibold border-b-2 transition-all flex items-center justify-center gap-1.5 ${
+                activeRightTab === "approvals"
+                  ? "border-indigo-500 text-indigo-500"
+                  : "border-transparent text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              Task Approvals
+              {tasks.filter(t => t.status === "completed_pending_approval").length > 0 && (
+                <span className="px-1.5 py-0.5 text-[10px] rounded-full text-white bg-indigo-500 font-bold">
+                  {tasks.filter(t => t.status === "completed_pending_approval").length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {activeRightTab === "assign" ? (
+            <form onSubmit={handleAssignTask} className="space-y-4 flex-1 flex flex-col justify-between">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Task Title</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Implement Login Validation"
+                    value={taskTitle}
+                    onChange={(e) => setTaskTitle(e.target.value)}
+                    className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Assign Employee</label>
+                  <select
+                    value={assignedEmp}
+                    onChange={(e) => setAssignedEmp(e.target.value)}
+                    className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                    style={{ colorScheme: "dark" }}
+                  >
+                    <option value="John Doe">John Doe</option>
+                    <option value="Sarah Johnson">Sarah Johnson</option>
+                    <option value="Mike Chen">Mike Chen</option>
+                    <option value="Emma Wilson">Emma Wilson</option>
+                    <option value="James Lee">James Lee</option>
+                    <option value="Priya Patel">Priya Patel</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">Description</label>
+                  <textarea
+                    placeholder="Describe the task instructions..."
+                    value={taskDesc}
+                    onChange={(e) => setTaskDesc(e.target.value)}
+                    className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary resize-none h-20"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-muted-foreground mb-1">ETA</label>
+                  <input
+                    type="number"
+                    min="0.1"
+                    step="0.1"
+                    placeholder="e.g. 3.5"
+                    value={taskDuration}
+                    onChange={(e) => setTaskDuration(e.target.value)}
+                    className="w-full text-sm p-2 rounded-lg bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="w-full mt-4 py-2 px-4 rounded-lg text-sm font-semibold gradient-primary text-white flex items-center justify-center gap-2 hover:opacity-90 active:scale-[0.98] transition-all"
+              >
+                <Send className="w-4 h-4" /> Assign Task
+              </button>
+            </form>
+          ) : (
+            <div className="space-y-4 flex-1 flex flex-col overflow-y-auto max-h-[480px] pr-1">
+              {tasks.filter(t => t.status === "completed_pending_approval").length === 0 ? (
+                <div className="text-xs text-muted-foreground p-8 text-center rounded-xl bg-muted/10 border border-dashed border-border flex items-center justify-center flex-1 h-[300px]">
+                  No pending task approvals.
+                </div>
+              ) : (
+                tasks.filter(t => t.status === "completed_pending_approval").map(t => (
+                  <div key={t.id} className="p-3.5 rounded-xl border border-border bg-muted/10 flex flex-col gap-2.5 shadow-sm hover:scale-[1.01] transition-all">
+                    <div>
+                      <div className="font-semibold text-xs text-foreground flex justify-between items-center">
+                        <span>{t.title}</span>
+                        <span className="text-[10px] bg-amber-500/10 text-amber-500 px-1.5 py-0.5 rounded font-bold uppercase">
+                          Pending Approval
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-muted-foreground mt-1">
+                        Assignee: <span className="font-bold text-foreground">{t.employee}</span>
+                      </div>
+                    </div>
+                    
+                    {t.completionComment && (
+                      <div className="p-2 rounded bg-card border border-border text-xs">
+                        <span className="font-bold text-[10px] text-indigo-400 block mb-0.5">Employee Comment:</span>
+                        <p className="text-muted-foreground leading-relaxed font-medium">{t.completionComment}</p>
+                      </div>
+                    )}
+
+                    <div className="flex gap-2.5 mt-1">
+                      <button
+                        onClick={() => approveTask(t.id)}
+                        className="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 active:scale-95 transition-all"
+                      >
+                        Accept
+                      </button>
+                      <button
+                        onClick={() => rejectTask(t.id)}
+                        className="flex-1 py-1.5 rounded-lg text-xs font-semibold text-white bg-red-600 hover:bg-red-700 active:scale-95 transition-all"
+                      >
+                        Reject
+                      </button>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

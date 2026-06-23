@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import {
-  CheckCircle, Activity, Play, Clock, Briefcase, Calendar, RotateCcw, AlertTriangle
+  CheckCircle, Activity, Play, Clock, Briefcase, Calendar, RotateCcw
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -20,11 +20,12 @@ interface Task {
   assignedAt: string;
   duration: number;
   eta: string;
-  status: "pending" | "in_progress" | "completed";
+  status: "pending" | "in_progress" | "completed" | "completed_pending_approval";
   timeSpent: number;
   timerStartedAt?: number;
   delayReason?: string;
   queries?: TaskQuery[];
+  completionComment?: string;
 }
 
 const DEFAULT_TASKS: Task[] = [
@@ -367,11 +368,7 @@ export function EmployeeTasks() {
   // Confirmation popup states
   const [startConfirmTaskId, setStartConfirmTaskId] = useState<string | null>(null);
   const [endConfirmTaskId, setEndConfirmTaskId] = useState<string | null>(null);
-
-  // Query raising form states
-  const [activeQueryFormTaskId, setActiveQueryFormTaskId] = useState<string | null>(null);
-  const [queryDesc, setQueryDesc] = useState("");
-  const [queryImage, setQueryImage] = useState<string | null>(null);
+  const [endTaskComment, setEndTaskComment] = useState("");
 
   // Sync to localStorage
   useEffect(() => {
@@ -423,7 +420,7 @@ export function EmployeeTasks() {
     setTasks(updated);
   };
 
-  const endTask = (id: string) => {
+  const submitEndTask = (id: string, comment: string) => {
     const updated = tasks.map(t => {
       if (t.id === id) {
         const elapsed = t.timerStartedAt ? Math.floor((Date.now() - t.timerStartedAt) / 1000) : 0;
@@ -431,13 +428,40 @@ export function EmployeeTasks() {
           ...t,
           timeSpent: t.timeSpent + elapsed,
           timerStartedAt: undefined,
-          status: "completed" as const,
-          completedAt: new Date().toISOString()
+          status: "completed_pending_approval" as const,
+          completedAt: new Date().toISOString(),
+          completionComment: comment
         };
       }
       return t;
     });
     setTasks(updated);
+
+    // Create a new notification for the manager
+    const targetTask = tasks.find(t => t.id === id);
+    const taskTitle = targetTask ? targetTask.title : "Task";
+
+    const newNotif = {
+      id: Date.now(),
+      title: "Task Approval Request",
+      message: `John Doe completed task "${taskTitle}" with comment: "${comment}"`,
+      time: "Just now",
+      type: "task_approval",
+      taskId: id,
+      read: false
+    };
+
+    const savedNotifs = localStorage.getItem("manager_notifications");
+    let notifList = [];
+    if (savedNotifs) {
+      try {
+        notifList = JSON.parse(savedNotifs);
+      } catch (e) {}
+    }
+    localStorage.setItem("manager_notifications", JSON.stringify([newNotif, ...notifList]));
+    window.dispatchEvent(new Event("storage"));
+
+    toast.success("Task ended and submitted to manager for approval!");
   };
 
   const undoTask = (id: string) => {
@@ -454,86 +478,7 @@ export function EmployeeTasks() {
     setTasks(updated);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setQueryImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
-  const handleRaiseQuery = (taskId: string) => {
-    if (!queryDesc.trim()) {
-      toast.error("Please enter a query description.");
-      return;
-    }
-    const newQuery: TaskQuery = {
-      id: `q-${Date.now()}`,
-      description: queryDesc,
-      image: queryImage || undefined,
-      raisedAt: new Date().toISOString()
-    };
-
-    const updated = tasks.map(t => {
-      if (t.id === taskId) {
-        const elapsed = t.timerStartedAt ? Math.floor((Date.now() - t.timerStartedAt) / 1000) : 0;
-        const existingQueries = t.queries || [];
-        return {
-          ...t,
-          timeSpent: t.timeSpent + elapsed,
-          timerStartedAt: undefined, // stop timer
-          queries: [...existingQueries, newQuery]
-        };
-      }
-      return t;
-    });
-    setTasks(updated);
-
-    // Find the task title to pre-fill the mail details
-    const targetTask = tasks.find(t => t.id === taskId);
-    const taskTitle = targetTask ? targetTask.title : "Blocked Task";
-    
-    const subjectText = `Dependency Query: ${taskTitle}`;
-    const bodyText = `Hi Manager,\n\nI have raised a dependency blocker query for the task: "${taskTitle}".\n\nIssue Description:\n${queryDesc}\n\n(Note: If you have uploaded a screenshot, please manually attach or paste it in this mail for sending.)\n\nThanks,\nJohn Doe`;
-    
-    // Open Gmail compose directly in a new tab
-    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=manager@company.com&su=${encodeURIComponent(subjectText)}&body=${encodeURIComponent(bodyText)}`;
-    window.open(gmailUrl, "_blank");
-
-    setActiveQueryFormTaskId(null);
-    setQueryDesc("");
-    setQueryImage(null);
-    toast.success("Query saved and Gmail tab opened!");
-  };
-
-  const handleResolveQuery = (taskId: string, queryId: string) => {
-    const updated = tasks.map(t => {
-      if (t.id === taskId) {
-        const updatedQueries = (t.queries || []).map(q => {
-          if (q.id === queryId) {
-            return {
-              ...q,
-              resolvedAt: new Date().toISOString()
-            };
-          }
-          return q;
-        });
-        const hasUnresolved = updatedQueries.some(q => !q.resolvedAt);
-        const shouldResume = !hasUnresolved;
-        return {
-          ...t,
-          queries: updatedQueries,
-          timerStartedAt: shouldResume ? Date.now() : undefined // resume timer only if no unresolved queries remain
-        };
-      }
-      return t;
-    });
-    setTasks(updated);
-    toast.success("Query resolved!");
-  };
+  // handleResolveQuery removed from employee module as requested.
 
   // Filter tasks for John Doe
   const employeeTasks = tasks.filter(t => {
@@ -547,7 +492,7 @@ export function EmployeeTasks() {
     return true;
   });
   const futureTasks = employeeTasks.filter(t => t.status === "pending");
-  const currentTasks = employeeTasks.filter(t => t.status === "in_progress");
+  const currentTasks = employeeTasks.filter(t => t.status === "in_progress" || t.status === "completed_pending_approval");
   const completedTasks = employeeTasks.filter(t => t.status === "completed");
 
   return (
@@ -631,6 +576,52 @@ export function EmployeeTasks() {
                 </div>
               ) : (
                 currentTasks.map(task => {
+                  if (task.status === "completed_pending_approval") {
+                    return (
+                      <div key={task.id} className="p-4 rounded-xl border border-amber-500/20 bg-card flex flex-col gap-2 shadow-sm relative overflow-hidden animate-fade-in">
+                        <div className="absolute top-0 right-0 h-1 w-full bg-amber-500" />
+                        <div className="font-semibold text-sm flex items-center justify-between">
+                          {task.title}
+                          <span className="text-[10px] font-bold text-amber-500 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                            PENDING APPROVAL
+                          </span>
+                        </div>
+                        <div className="text-xs text-muted-foreground leading-relaxed">{task.description}</div>
+                        
+                        {task.completionComment && (
+                          <div className="p-2 rounded bg-muted/30 border border-border text-[11px] text-muted-foreground mt-1">
+                            <span className="font-bold text-indigo-400 block mb-0.5">Submitted Comment:</span>
+                            {task.completionComment}
+                          </div>
+                        )}
+
+                        <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-border">
+                          <div className="text-[11px] text-muted-foreground">
+                            Assigned: {new Date(task.assignedAt).toLocaleString()}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <div className="text-[11px] text-indigo-500 font-semibold bg-indigo-500/5 px-2 py-0.5 rounded border border-indigo-500/10">
+                              ETA: {task.duration} {task.duration === 1 ? "Hour" : "Hours"}
+                            </div>
+                            <div className="flex items-center gap-1 text-xs font-bold text-amber-500 bg-amber-500/5 px-2 py-1 rounded-lg border border-amber-500/10">
+                              <Clock className="w-3.5 h-3.5" />
+                              <span>Time Spent: {formatDuration(task.timeSpent)}</span>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="mt-2">
+                          <button
+                            disabled
+                            className="w-full py-1.5 px-3 rounded-lg text-xs font-semibold bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center gap-1.5 cursor-not-allowed"
+                          >
+                            <Clock className="w-3.5 h-3.5" /> Approval Request Sent to Manager
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const elapsed = task.timeSpent + (task.timerStartedAt ? Math.floor((Date.now() - task.timerStartedAt) / 1000) : 0);
                   const isRunning = !!task.timerStartedAt;
                   const durationInSeconds = task.duration * 3600;
@@ -648,132 +639,6 @@ export function EmployeeTasks() {
                         )}
                       </div>
                       <div className="text-xs text-muted-foreground leading-relaxed">{task.description}</div>
-
-                      {/* Delayed Reason Input ONLY if Time Spent exceeds Allocated Duration (ETA) */}
-                      {isTimeOverLimit && (
-                        <div className="mt-1 p-2 rounded bg-red-500/5 border border-red-500/10">
-                          <label className="block text-[10px] font-bold text-red-500 mb-1">
-                            Explain Delay (Why was it not completed?):
-                          </label>
-                          <textarea
-                            placeholder="Why is it taking longer than estimated?"
-                            value={task.delayReason || ""}
-                            onChange={(e) => {
-                              const updated = tasks.map(t => t.id === task.id ? { ...t, delayReason: e.target.value } : t);
-                              setTasks(updated);
-                            }}
-                            className="w-full text-xs p-1.5 rounded bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-red-500 resize-none h-12"
-                          />
-                        </div>
-                      )}
-
-                      {/* Active / Resolved Queries List */}
-                      {task.queries && task.queries.length > 0 && (
-                        <div className="space-y-2 mt-2">
-                          {task.queries.map((q) => (
-                            <div
-                              key={q.id}
-                              className={`p-2.5 rounded text-xs border animate-fade-in ${
-                                q.resolvedAt
-                                  ? "bg-emerald-500/5 border-emerald-500/20 text-foreground"
-                                  : "bg-amber-500/10 border-amber-500/20"
-                              }`}
-                            >
-                              <div className={`flex items-center gap-1.5 font-bold mb-1 ${q.resolvedAt ? "text-emerald-500" : "text-amber-500"}`}>
-                                {q.resolvedAt ? (
-                                  <CheckCircle className="w-3.5 h-3.5" />
-                                ) : (
-                                  <AlertTriangle className="w-3.5 h-3.5" />
-                                )}
-                                <span>{q.resolvedAt ? "Query Resolved" : "Query Raised (Dependency)"}</span>
-                              </div>
-                              <div className={`text-[10px] mb-2 font-semibold ${q.resolvedAt ? "text-emerald-500/80" : "text-amber-500/80"}`}>
-                                Raised: {new Date(q.raisedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                                {q.resolvedAt && ` | Resolved: ${new Date(q.resolvedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-                              </div>
-                              <p className="text-muted-foreground leading-relaxed font-medium">{q.description}</p>
-                              {q.image && (
-                                <div className="mt-2 rounded-lg overflow-hidden border border-border bg-black/20 max-h-[100px] flex items-center justify-center">
-                                  <img src={q.image} alt="Query Attachment" className="max-h-[100px] w-auto object-contain" />
-                                </div>
-                              )}
-                              {!q.resolvedAt && (
-                                <button
-                                  onClick={() => handleResolveQuery(task.id, q.id)}
-                                  className="mt-2 text-[10px] text-amber-500 hover:underline font-semibold"
-                                >
-                                  Resolve Query
-                                </button>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-
-                      {/* Add Another Query Option */}
-                      {activeQueryFormTaskId === task.id ? (
-                        <div className="mt-2 p-3 rounded-lg bg-muted/50 border border-border space-y-3 animate-fade-in">
-                          <div>
-                            <label className="block text-[10px] font-bold text-muted-foreground mb-1">Attach Screenshot / Image:</label>
-                            <input
-                              type="file"
-                              accept="image/*"
-                              onChange={handleImageUpload}
-                              className="w-full text-xs text-muted-foreground file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-[10px] file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30"
-                            />
-                            {queryImage && (
-                              <div className="mt-2 relative rounded-lg overflow-hidden border border-border bg-black/20 max-h-[80px] flex items-center justify-center">
-                                <img src={queryImage} alt="Attachment Preview" className="max-h-[80px] w-auto object-contain" />
-                                <button
-                                  type="button"
-                                  onClick={() => setQueryImage(null)}
-                                  className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 text-[9px] font-bold leading-none hover:bg-red-600"
-                                >
-                                  ✕
-                                </button>
-                              </div>
-                            )}
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-bold text-muted-foreground mb-1">Describe Dependency / Issue:</label>
-                            <textarea
-                              placeholder="Describe dependency or blocker..."
-                              value={queryDesc}
-                              onChange={(e) => setQueryDesc(e.target.value)}
-                              className="w-full text-xs p-2 rounded bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-amber-500 resize-none h-16"
-                            />
-                          </div>
-                          <div className="flex gap-2">
-                            <button
-                              onClick={() => handleRaiseQuery(task.id)}
-                              className="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold gradient-warning text-white hover:opacity-90 active:scale-95 transition-all"
-                            >
-                              Submit Query
-                            </button>
-                            <button
-                              onClick={() => {
-                                setActiveQueryFormTaskId(null);
-                                setQueryDesc("");
-                                setQueryImage(null);
-                              }}
-                              className="py-1.5 px-3 rounded-lg text-xs font-semibold bg-muted hover:bg-muted/80 text-foreground border border-border active:scale-95 transition-all"
-                            >
-                              Cancel
-                            </button>
-                          </div>
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => {
-                            setActiveQueryFormTaskId(task.id);
-                            setQueryDesc("");
-                            setQueryImage(null);
-                          }}
-                          className="mt-2 py-1 px-2.5 rounded-lg text-[10px] font-semibold border border-amber-500/30 text-amber-500 hover:bg-amber-500/5 active:scale-95 transition-all w-fit"
-                        >
-                          + Raise Dependency Query
-                        </button>
-                      )}
 
                       <div className="flex flex-col gap-1.5 mt-2 pt-2 border-t border-border">
                         <div className="text-[11px] text-muted-foreground">
@@ -828,48 +693,14 @@ export function EmployeeTasks() {
                   </div>
                   <div className="text-xs text-muted-foreground leading-relaxed flex-1">{task.description}</div>
 
-                  {task.delayReason && (
+                  {task.completionComment && (
                     <div className="p-2 rounded bg-muted/30 border border-border text-[11px] text-muted-foreground mt-1">
-                      <span className="font-bold text-red-500 block mb-0.5">Delay Explanation:</span>
-                      {task.delayReason}
+                      <span className="font-bold text-indigo-400 block mb-0.5">Completion Comment:</span>
+                      {task.completionComment}
                     </div>
                   )}
 
-                  {/* Completed Task Queries list */}
-                  {task.queries && task.queries.length > 0 && (
-                    <div className="space-y-2 mt-2 pt-2 border-t border-border/50">
-                      <div className="text-[10px] font-bold text-muted-foreground mb-1">Task Queries & Blockers:</div>
-                      {task.queries.map((q) => (
-                        <div
-                          key={q.id}
-                          className={`p-2 rounded text-[11px] border ${
-                            q.resolvedAt
-                              ? "bg-emerald-500/5 border-emerald-500/20 text-foreground"
-                              : "bg-amber-500/10 border-amber-500/20"
-                          }`}
-                        >
-                          <div className={`flex items-center gap-1.5 font-bold mb-0.5 ${q.resolvedAt ? "text-emerald-500" : "text-amber-500"}`}>
-                            {q.resolvedAt ? (
-                              <CheckCircle className="w-3 h-3" />
-                            ) : (
-                              <AlertTriangle className="w-3 h-3" />
-                            )}
-                            <span>{q.resolvedAt ? "Query Resolved" : "Query Raised (Dependency)"}</span>
-                          </div>
-                          <div className={`text-[9px] mb-1 font-semibold ${q.resolvedAt ? "text-emerald-500/80" : "text-amber-500/80"}`}>
-                            Raised: {new Date(q.raisedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                            {q.resolvedAt && ` | Resolved: ${new Date(q.resolvedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`}
-                          </div>
-                          <p className="text-muted-foreground leading-normal font-medium">{q.description}</p>
-                          {q.image && (
-                            <div className="mt-1.5 rounded border border-border bg-black/20 max-h-[80px] flex items-center justify-center overflow-hidden">
-                              <img src={q.image} alt="Query Attachment" className="max-h-[80px] w-auto object-contain" />
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
+
 
                   <div className="text-[10px] text-muted-foreground mt-1 pt-2 border-t border-border/50">
                     Time Spent: <span className="font-bold text-emerald-500">{formatDuration(task.timeSpent)}</span>
@@ -928,31 +759,45 @@ export function EmployeeTasks() {
 
       {/* End Task Confirmation Modal */}
       {endConfirmTaskId !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => setEndConfirmTaskId(null)}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ background: "rgba(0,0,0,0.6)" }} onClick={() => { setEndConfirmTaskId(null); setEndTaskComment(""); }}>
           <div className="relative w-full max-w-sm rounded-2xl p-6 shadow-2xl animate-scale-up" style={{ background: "var(--card)", border: "1px solid var(--border)" }} onClick={e => e.stopPropagation()}>
-            <button onClick={() => setEndConfirmTaskId(null)} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">✕</button>
+            <button onClick={() => { setEndConfirmTaskId(null); setEndTaskComment(""); }} className="absolute right-4 top-4 text-muted-foreground hover:text-foreground">✕</button>
             <div className="flex flex-col gap-4 text-center">
               <div className="mx-auto w-12 h-12 rounded-full flex items-center justify-center bg-red-500/10 text-red-500">
                 <CheckCircle className="w-6 h-6" />
               </div>
               <div>
                 <h3 style={{ fontWeight: 700, fontSize: "1.1rem" }}>End Task</h3>
-                <p className="text-xs text-muted-foreground mt-1">Are you sure you want to end this task and complete it? The timer will be stopped.</p>
+                <p className="text-xs text-muted-foreground mt-1">Please enter a completion comment. This comment is mandatory to end the task and request approval.</p>
+              </div>
+              <div className="text-left mt-2">
+                <label className="block text-[10px] font-bold text-muted-foreground mb-1">Completion Comment:</label>
+                <textarea
+                  placeholder="Describe what was accomplished..."
+                  value={endTaskComment}
+                  onChange={(e) => setEndTaskComment(e.target.value)}
+                  className="w-full text-xs p-2 rounded bg-input-background border border-border text-foreground focus:outline-none focus:ring-1 focus:ring-indigo-500 resize-none h-20"
+                />
               </div>
             </div>
             <div className="flex gap-3 mt-6">
-              <button onClick={() => setEndConfirmTaskId(null)} className="flex-1 px-4 py-2 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 500, color: "var(--foreground)" }}>
+              <button onClick={() => { setEndConfirmTaskId(null); setEndTaskComment(""); }} className="flex-1 px-4 py-2 rounded-xl" style={{ background: "var(--card)", border: "1px solid var(--border)", fontSize: "0.875rem", fontWeight: 500, color: "var(--foreground)" }}>
                 Cancel
               </button>
               <button
                 onClick={() => {
-                  endTask(endConfirmTaskId);
+                  if (!endTaskComment.trim()) {
+                    toast.error("Please enter a completion comment to end the task.");
+                    return;
+                  }
+                  submitEndTask(endConfirmTaskId, endTaskComment);
                   setEndConfirmTaskId(null);
+                  setEndTaskComment("");
                 }}
                 className="flex-1 px-4 py-2 rounded-xl text-white font-bold gradient-danger"
                 style={{ fontSize: "0.875rem" }}
               >
-                Yes, End Task
+                Submit
               </button>
             </div>
           </div>
